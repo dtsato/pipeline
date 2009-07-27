@@ -1,0 +1,7 @@
+= pipeline
+
+Description goes here.
+
+== Copyright
+
+Copyright (c) 2009 Danilo Sato. See LICENSE for details.
