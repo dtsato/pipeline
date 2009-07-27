@@ -1,6 +1,23 @@
-= pipeline
+= Pipeline
 
-Description goes here.
+== Description
+
+Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable pipeline.
+
+== Installation
+
+Add the following lines to your config/environment.rb file:
+
+  config.gem "dtsato-pipeline", :version => ">= 0.0.1", :source => "http://gems.github.com"
+
+== Dependencies
+
+* Rails
+* Delayed job (http://github.com/collectiveidea/delayed_job/tree/master)
+
+== Usage
+
+TODO
 
 == Copyright
 

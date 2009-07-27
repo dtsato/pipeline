@@ -5,11 +5,17 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "pipeline"
-    gem.summary = %Q{TODO}
-    gem.email = "dtsato@gmail.com"
+    gem.summary  = "A Rails plugin/gem to run asynchronous processes in a configurable pipeline"
+    gem.email = "danilo@dtsato.com"
     gem.homepage = "http://github.com/dtsato/pipeline"
     gem.authors = ["Danilo Sato"]
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.description = "Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable pipeline."
+
+    gem.has_rdoc = true
+    gem.rdoc_options = ["--main", "README.rdoc", "--inline-source", "--line-numbers"]
+    gem.extra_rdoc_files = ["README.rdoc"]
+
+    gem.test_files = Dir['spec/**/*']
   end
 
 rescue LoadError
@@ -20,11 +26,15 @@ require 'spec/rake/spectask'
 Spec::Rake::SpecTask.new(:spec) do |spec|
   spec.libs << 'lib' << 'spec'
   spec.spec_files = FileList['spec/**/*_spec.rb']
+  spec.spec_opts = ['--options', "\"spec/spec.opts\""]
 end
 
 Spec::Rake::SpecTask.new(:rcov) do |spec|
   spec.libs << 'lib' << 'spec'
   spec.pattern = 'spec/**/*_spec.rb'
+  spec.rcov_opts = lambda do
+    IO.readlines("spec/rcov.opts").map {|l| l.chomp.split " "}.flatten
+  end
   spec.rcov = true
 end
 
