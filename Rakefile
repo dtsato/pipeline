@@ -16,6 +16,9 @@ begin
     gem.extra_rdoc_files = ["README.rdoc"]
 
     gem.test_files = Dir['spec/**/*']
+    
+    gem.add_dependency('activerecord', '>= 2.0')
+    gem.add_dependency('collectiveidea-delayed_job', '>= 1.8.0')
   end
 
 rescue LoadError
@@ -38,8 +41,20 @@ Spec::Rake::SpecTask.new(:rcov) do |spec|
   spec.rcov = true
 end
 
+begin
+  require "synthesis/task"
 
-task :default => :spec
+  desc "Run Synthesis on specs"
+  Synthesis::Task.new("spec:synthesis") do |t|
+    t.adapter = :rspec
+    t.pattern = 'spec/**/*_spec.rb'
+  end
+rescue LoadError
+  desc 'Synthesis rake task not available'
+  task "spec:synthesis" do
+    abort 'Synthesis rake task is not available. Be sure to install synthesis as a gem'
+  end
+end
 
 require 'rake/rdoctask'
 Rake::RDocTask.new do |rdoc|
@@ -56,3 +71,4 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
+task :default => :spec

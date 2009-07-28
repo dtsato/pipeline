@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'spec_helper')
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 module Pipeline
   describe ApiMethods do
@@ -11,7 +11,11 @@ module Pipeline
         lambda {Pipeline.start(Object.new)}.should raise_error(InvalidPipelineError)
       end
     
-      it "should start a worker for a pipeline instance"
+      it "should start a worker for a pipeline instance" do
+        Delayed::Job.should_receive(:enqueue).with(an_instance_of(WorkerEngine))
+        
+        Pipeline.start(FakePipeline.new)
+      end
     
       it "should provide a token for the pipeline instance"
     end
