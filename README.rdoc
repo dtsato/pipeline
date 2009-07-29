@@ -10,6 +10,41 @@ Add the following lines to your config/environment.rb file:
 
   config.gem "dtsato-pipeline", :version => ">= 0.0.1", :source => "http://gems.github.com"
 
+Run the following:
+
+  rake gems:install
+  rake gems:unpack # Optional, if you want to vendor the gem
+  script/generate pipeline # To generate the migration scripts that will store pipelines
+  rake db:migrate
+
+Then all you have to do is define your stages, pipelines, and start it:
+
+  class Step1 < Pipeline::Stage::Base
+    def execute
+      puts("Started step 1")
+      sleep 2
+      puts("Finished step 1")
+    end
+  end
+
+  class Step2 < Pipeline::Stage::Base
+    def execute
+      puts("Started step 2")
+      sleep 3
+      puts("Finished step 2")
+    end
+  end
+  
+  class TwoStepPipeline < Pipeline::Base
+    define_stages Step1 >> Step2
+  end
+
+  Pipeline.start(TwoStepPipeline.new)
+
+You will also need to run your Delayed Job workers that will process the pipeline in the background:
+
+  rake jobs:work
+
 == Dependencies
 
 * Rails
@@ -17,7 +52,7 @@ Add the following lines to your config/environment.rb file:
 
 == Usage
 
-TODO
+
 
 == Copyright
 
