@@ -17,7 +17,16 @@ Run the following:
   script/generate pipeline # To generate the migration scripts that will store pipelines
   rake db:migrate
 
-Then all you have to do is define your stages, pipelines, and start it:
+You will also need to run your Delayed Job workers that will process the pipeline jobs in the background:
+
+  rake jobs:work
+
+== Dependencies
+
+* Rails
+* Delayed job (http://github.com/collectiveidea/delayed_job/tree/master)
+
+== Usage
 
   class Step1 < Pipeline::Stage::Base
     def execute
@@ -40,19 +49,6 @@ Then all you have to do is define your stages, pipelines, and start it:
   end
 
   Pipeline.start(TwoStepPipeline.new)
-
-You will also need to run your Delayed Job workers that will process the pipeline in the background:
-
-  rake jobs:work
-
-== Dependencies
-
-* Rails
-* Delayed job (http://github.com/collectiveidea/delayed_job/tree/master)
-
-== Usage
-
-
 
 == Copyright
 
