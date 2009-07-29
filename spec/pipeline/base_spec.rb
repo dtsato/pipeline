@@ -133,7 +133,39 @@ module Pipeline
       end
     end
     
+    describe "- execution (in progress)" do
+      it "should set status to in_progress" do
+        pipeline = SamplePipeline.new
+        pipeline.send(:_setup)
+        
+        pipeline.status.should == :in_progress
+        pipeline.reload.status.should == :in_progress
+      end
+    end
+    
     describe "- execution (irrecoverable error)" do
+      before(:each) do
+        failed_stage = SecondStage.new
+        failed_stage.stub!(:perform).and_raise("Failure")
+        SecondStage.stub!(:new).and_return(failed_stage)
+        @pipeline = SamplePipeline.new
+      end
+
+      it "should re-raise error" do
+        lambda {@pipeline.execute}.should raise_error
+      end
+      
+      it "should update status" do
+        lambda {@pipeline.execute}.should raise_error
+        @pipeline.status.should == :failed
+      end
+      
+      it "should save status" do
+        @pipeline.save!
+        lambda {@pipeline.execute}.should raise_error
+        @pipeline.reload.status.should == :failed
+      end
+      
     end
   end
 end

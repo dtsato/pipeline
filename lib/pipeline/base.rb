@@ -24,12 +24,20 @@ module Pipeline
     end
     
     def execute
-      self.attempts += 1
+      _setup
       stages.each do |stage|
         stage.execute
       end
       self.status = :completed
-      save!
+    rescue => e
+      self.status = :failed
+      raise e
+    end
+    
+    private
+    def _setup
+      self.attempts += 1
+      self.status = :in_progress
     end
   end
 end
