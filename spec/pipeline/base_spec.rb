@@ -103,15 +103,19 @@ module Pipeline
       
       it "should execute each stage" do
         @pipeline.stages.each { |stage| stage.should_not be_executed }
-        
         @pipeline.execute
-
         @pipeline.stages.each { |stage| stage.should be_executed }
       end
       
       it "should update pipeline status after all stages finished" do
         @pipeline.execute
         @pipeline.status.should == :completed
+      end
+      
+      it "should save status" do
+        @pipeline.save!
+        @pipeline.execute
+        @pipeline.reload.status.should == :completed
       end
     end
     

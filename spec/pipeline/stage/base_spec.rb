@@ -10,6 +10,12 @@ class SampleStage < Pipeline::Stage::Base
   end
 end
 
+class FailedStage < Pipeline::Stage::Base
+  def perform
+    raise "Can't execute"
+  end
+end
+
 module Pipeline
   module Stage
     describe Base do
@@ -85,6 +91,12 @@ module Pipeline
           @stage.status.should == :completed
         end
         
+        it "should save status" do
+          @stage.save!
+          @stage.execute
+          @stage.reload.status.should == :completed
+        end
+        
         it "should increment attempts" do
           @stage.execute
           @stage.attempts.should == 1
@@ -98,6 +110,28 @@ module Pipeline
           @stage.execute
           @stage.should be_executed
         end
+      end
+      
+      describe "- execution (failure)" do
+        before(:each) do
+          @stage = FailedStage.new
+        end
+
+        it "should re-raise error" do
+          lambda {@stage.execute}.should raise_error
+        end
+        
+        it "should update status" do
+          lambda {@stage.execute}.should raise_error
+          @stage.status.should == :failed
+        end
+        
+        it "should save status" do
+          @stage.save!
+          lambda {@stage.execute}.should raise_error
+          @stage.reload.status.should == :failed
+        end
+        
       end
 
     end
