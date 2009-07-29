@@ -1,7 +1,7 @@
 module Pipeline
   class Base < ActiveRecord::Base
     set_table_name :pipeline_instances
-    has_many :stages, :class_name => 'Pipeline::Stage::Base'
+    has_many :stages, :class_name => 'Pipeline::Stage::Base', :foreign_key => 'pipeline_instance_id'
 
     class_inheritable_accessor :defined_stages, :instance_writer => false
     self.defined_stages = []
@@ -12,8 +12,10 @@ module Pipeline
 
     def after_initialize
       self[:status] = :not_started
-      self.class.defined_stages.each do |stage_class|
-        stages << stage_class.new
+      if new_record?
+        self.class.defined_stages.each do |stage_class|
+          stages << stage_class.new(:pipeline => self)
+        end
       end
     end
     

@@ -25,19 +25,19 @@ module Pipeline
         end
       end
       
-      it "should start with status not_started" do
-        Base.new.status.should == :not_started
-        Base.new(:status => :something_else).status.should == :not_started
-      end
-      
       it "should set default name" do
         Base.new.name.should == "Pipeline::Stage::Base"
         SampleStage.new.name.should == "SampleStage"
       end
-      
+
       it "should allow specifying a name on creation" do
         Base.new(:name => "My Name").name.should == "My Name"
         SampleStage.new(:name => "Customized Name").name.should == "Customized Name"
+      end
+      
+      it "should start with status not_started" do
+        Base.new.status.should == :not_started
+        Base.new(:status => :something_else).status.should == :not_started
       end
       
       it "should allow completion of stage" do
@@ -69,6 +69,12 @@ module Pipeline
 
           s = SampleStage.find(@stage.id)
           s.should === @stage
+        end
+
+        it "should persist type as single table inheritance" do
+          @stage.save!
+          stage = Base.find(@stage.id)
+          stage.should be_an_instance_of(SampleStage)
         end
         
       end
