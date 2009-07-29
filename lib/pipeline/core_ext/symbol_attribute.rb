@@ -1,6 +1,6 @@
 module Pipeline
   module SymbolAttribute
-    def self.included (base)
+    def self.included(base)
       base.extend(ClassMethods)
     end
 
