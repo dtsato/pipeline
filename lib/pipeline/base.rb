@@ -11,7 +11,7 @@ module Pipeline
     end
 
     def after_initialize
-      self[:status] = :not_started
+      self.status = :not_started
       if new_record?
         self.class.defined_stages.each do |stage_class|
           stages << stage_class.new(:pipeline => self)
@@ -20,11 +20,11 @@ module Pipeline
     end
     
     def execute
-      stages.each do |s|
-        s.execute
-        s.complete
+      self.attempts += 1
+      stages.each do |stage|
+        stage.execute
       end
-      self[:status] = :completed
+      self.status = :completed
     end
   end
 end

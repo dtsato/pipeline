@@ -29,7 +29,7 @@ You will also need to run your Delayed Job workers that will process the pipelin
 == Usage
 
   class Step1 < Pipeline::Stage::Base
-    def execute
+    def perform
       puts("Started step 1")
       sleep 2
       puts("Finished step 1")
@@ -37,7 +37,7 @@ You will also need to run your Delayed Job workers that will process the pipelin
   end
 
   class Step2 < Pipeline::Stage::Base
-    def execute
+    def perform
       puts("Started step 2")
       sleep 3
       puts("Finished step 2")

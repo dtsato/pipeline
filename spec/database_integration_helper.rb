@@ -21,6 +21,7 @@ ActiveRecord::Schema.define do
   create_table :pipeline_instances, :force => true do |t|
     t.string :type
     t.string :status
+    t.integer :attempts, :default => 0
     t.timestamps
   end
 
@@ -30,7 +31,7 @@ ActiveRecord::Schema.define do
     t.string  :name
     t.string  :status
     t.text    :message
-    t.integer :retry_attempts, :default => 0
+    t.integer :attempts, :default => 0
     t.timestamps
   end
 

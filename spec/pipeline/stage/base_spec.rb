@@ -1,6 +1,13 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
 class SampleStage < Pipeline::Stage::Base
+  def perform
+    @executed = true
+  end
+  
+  def executed?
+    !!@executed
+  end
 end
 
 module Pipeline
@@ -25,32 +32,21 @@ module Pipeline
         end
       end
       
-      it "should set default name" do
-        Base.new.name.should == "Pipeline::Stage::Base"
-        SampleStage.new.name.should == "SampleStage"
-      end
+      describe "- setup" do
+        it "should set default name" do
+          Base.new.name.should == "Pipeline::Stage::Base"
+          SampleStage.new.name.should == "SampleStage"
+        end
 
-      it "should allow specifying a name on creation" do
-        Base.new(:name => "My Name").name.should == "My Name"
-        SampleStage.new(:name => "Customized Name").name.should == "Customized Name"
-      end
-      
-      it "should start with status not_started" do
-        Base.new.status.should == :not_started
-        Base.new(:status => :something_else).status.should == :not_started
-      end
-      
-      it "should allow completion of stage" do
-        stage = Base.new
-        stage.complete
-        stage.status.should == :completed
-      end
+        it "should allow specifying a name on creation" do
+          Base.new(:name => "My Name").name.should == "My Name"
+          SampleStage.new(:name => "Customized Name").name.should == "Customized Name"
+        end
 
-      it "should allow completion with custom message" do
-        stage = Base.new
-        stage.complete("This stage is completed")
-        stage.status.should == :completed
-        stage.message.should == "This stage is completed"
+        it "should start with status not_started" do
+          Base.new.status.should == :not_started
+          Base.new(:status => :something_else).status.should == :not_started
+        end
       end
       
       describe "- persistence" do
@@ -77,6 +73,31 @@ module Pipeline
           stage.should be_an_instance_of(SampleStage)
         end
         
+      end
+
+      describe "- execution (success)" do
+        before(:each) do
+          @stage = SampleStage.new
+        end
+        
+        it "should update status after finished" do
+          @stage.execute
+          @stage.status.should == :completed
+        end
+        
+        it "should increment attempts" do
+          @stage.execute
+          @stage.attempts.should == 1
+
+          @stage.execute
+          @stage.attempts.should == 2
+        end
+        
+        it "should call template method #perform" do
+          @stage.should_not be_executed
+          @stage.execute
+          @stage.should be_executed
+        end
       end
 
     end

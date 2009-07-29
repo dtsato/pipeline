@@ -6,7 +6,7 @@ class CreatePipelineStages < ActiveRecord::Migration
       t.string     :name                          # Name of the stage
       t.string     :status                        # Current status of the stage
       t.text       :message                       # Message that describes current status
-      t.integer    :retry_attempts, :default => 0 # Number of times this stage was executed
+      t.integer    :attempts, :default => 0       # Number of times this stage was executed
 
       t.timestamps
     end

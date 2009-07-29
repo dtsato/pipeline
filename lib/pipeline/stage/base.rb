@@ -17,17 +17,18 @@ module Pipeline
       end
       
       def after_initialize
-        self[:name] ||= self.class.to_s
-        self[:status] = :not_started
+        self.name ||= self.class.to_s
+        self.status = :not_started
       end
       
-      def complete(message = nil)
-        self[:status] = :completed
-        self[:message] = message.to_s if message
+      def execute
+        self.attempts += 1
+        perform
+        self.status = :completed
       end
       
       # Subclass must implement this as part of the contract
-      def execute; end
+      def perform; end
     end
   end
 end

@@ -1,17 +1,12 @@
 require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 class FirstStage < Pipeline::Stage::Base
-  def initialize(*args)
-    @executed = false
-    super
-  end
-  
-  def execute
+  def perform
     @executed = true
   end
   
   def executed?
-    @executed
+    !!@executed
   end
 end
 
@@ -93,11 +88,19 @@ module Pipeline
       end
     end
     
-    describe "- execute (success)" do
+    describe "- execution (success)" do
       before(:each) do
         @pipeline = SamplePipeline.new
       end
 
+      it "should increment attempts" do
+        @pipeline.execute
+        @pipeline.attempts.should == 1
+
+        @pipeline.execute
+        @pipeline.attempts.should == 2
+      end
+      
       it "should execute each stage" do
         @pipeline.stages.each { |stage| stage.should_not be_executed }
         
@@ -106,18 +109,13 @@ module Pipeline
         @pipeline.stages.each { |stage| stage.should be_executed }
       end
       
-      it "should update stage status after finished" do
-        @pipeline.execute
-        @pipeline.stages.each { |stage| stage.status.should == :completed }
-      end
-      
       it "should update pipeline status after all stages finished" do
         @pipeline.execute
         @pipeline.status.should == :completed
       end
     end
     
-    describe "- execute (irrecoverable error)" do
+    describe "- execution (irrecoverable error)" do
     end
   end
 end
