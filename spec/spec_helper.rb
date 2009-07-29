@@ -24,7 +24,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :pipeline_instances, :force => true do |t|
-    t.string:pipeline_definition
+    t.string :pipeline_definition
     t.string :status
     t.timestamps
   end
@@ -32,7 +32,7 @@ ActiveRecord::Schema.define do
   create_table :pipeline_stages, :force => true do |t|
     t.references :pipeline_instance
     t.string  :name
-    t.string :status
+    t.string  :status
     t.text    :message
     t.integer :retry_attempts, :default => 0
     t.timestamps

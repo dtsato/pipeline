@@ -1,26 +1,24 @@
 module Pipeline
   class Base < ActiveRecord::Base
     set_table_name :pipeline_instances
-    # has_many :stages, :class_name => 'Pipeline::Stage::Base'
+    has_many :stages, :class_name => 'Pipeline::Stage::Base'
 
-    class_inheritable_accessor :stages, :instance_writer => false
-    self.stages = []
+    class_inheritable_accessor :defined_stages, :instance_writer => false
+    self.defined_stages = []
     
-    class << self
-      def add_stages(*stages)
-        self.stages += stages
-      end
-      alias_method :add_stage, :add_stages
+    def self.define_stages(stages)
+      self.defined_stages = stages.build_chain
     end
 
-    attr_reader :stages
     def after_initialize
       self[:status] = :not_started
-      @stages = self.class.stages.map {|s| s.new }
+      self.class.defined_stages.each do |stage_class|
+        stages << stage_class.new
+      end
     end
     
     def execute
-      @stages.each do |s|
+      stages.each do |s|
         s.execute
         s.complete
       end

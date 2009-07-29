@@ -20,21 +20,12 @@ module Pipeline
     class SecondStage < FirstStage; end # Ugly.. just so I don't have to write stub again
     
     class SamplePipeline < Pipeline::Base
-      add_stage FirstStage
-      add_stage SecondStage
+      define_stages FirstStage >> SecondStage
     end
 
-    class AnotherSamplePipeline < Pipeline::Base
-      add_stages FirstStage, SecondStage
-    end
-    
     describe "- configuring" do
       it "should allow accessing stages" do
-        SamplePipeline.stages.should == [FirstStage, SecondStage]
-      end
-    
-      it "should allow adding stages" do
-        AnotherSamplePipeline.stages.should == [FirstStage, SecondStage]
+        SamplePipeline.defined_stages.should == [FirstStage, SecondStage]
       end
     end
     
