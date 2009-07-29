@@ -2,7 +2,7 @@ module Pipeline
   module Stage
     class Base < ActiveRecord::Base
       set_table_name :pipeline_stages
-      symbolise :status
+      symbol_attr :status
 
       belongs_to :pipeline, :class_name => "Pipeline::Base"
       

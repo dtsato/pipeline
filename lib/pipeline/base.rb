@@ -1,8 +1,8 @@
 module Pipeline
   class Base < ActiveRecord::Base
     set_table_name :pipeline_instances
-    symbolise :status
-    has_many :stages, :class_name => 'Pipeline::Stage::Base', :foreign_key => 'pipeline_instance_id'
+    symbol_attr :status
+    has_many :stages, :class_name => 'Pipeline::Stage::Base', :foreign_key => 'pipeline_instance_id', :dependent => :destroy
 
     class_inheritable_accessor :defined_stages, :instance_writer => false
     self.defined_stages = []

@@ -80,11 +80,21 @@ module Pipeline
         retrieved_pipeline.stages.should === pipeline.stages
       end
 
-      it "should associate pipeline stages with pipeline instance" do
-        p1 = SamplePipeline.new
-        p1.save!
+      it "should associate stages with pipeline instance" do
+        pipeline = SamplePipeline.new
+        pipeline.save!
         
-        p1.stages.each {|stage| stage.pipeline.should === p1}
+        pipeline.stages.each {|stage| stage.pipeline.should === pipeline}
+      end
+      
+      it "should destroy stages when pipeline instance is destroyed" do
+        pipeline = SamplePipeline.new
+        pipeline.save!
+        
+        Pipeline::Stage::Base.count(:conditions => ['pipeline_instance_id = ?', pipeline.id]).should > 0
+        
+        pipeline.destroy
+        Pipeline::Stage::Base.count(:conditions => ['pipeline_instance_id = ?', pipeline.id]).should == 0
       end
     end
     
