@@ -7,10 +7,9 @@ module Pipeline
     module ClassMethods
       def symbol_attrs(*attributes)
         attributes.each do |attribute|
-          attribute = attribute.to_s
           class_eval <<-EOD
-            def #{attribute}
-              read_attribute('#{attribute}').to_sym rescue nil
+            def #{attribute.to_s}
+              read_attribute('#{attribute.to_s}').to_sym rescue nil
             end
           EOD
         end
