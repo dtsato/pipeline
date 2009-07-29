@@ -51,7 +51,10 @@ module Pipeline
 
         it "should start with status not_started" do
           Base.new.status.should == :not_started
-          Base.new(:status => :something_else).status.should == :not_started
+        end
+        
+        it "should validate status" do
+          lambda {Base.new(:status => :something_else)}.should raise_error
         end
       end
       
@@ -131,7 +134,16 @@ module Pipeline
           lambda {@stage.execute}.should raise_error
           @stage.reload.status.should == :failed
         end
-        
+      end
+      
+      describe "- execution (in progress)" do
+        it "should set status to in_progress" do
+          stage = SampleStage.new
+          stage.send(:_setup)
+          
+          stage.status.should == :in_progress
+          stage.reload.status.should == :in_progress
+        end
       end
 
     end

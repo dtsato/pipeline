@@ -37,6 +37,10 @@ module Pipeline
       it "should instantiate stages with status not_started" do
         @pipeline.stages.each { |stage| stage.status.should == :not_started }
       end
+      
+      it "should validate status" do
+        lambda {Base.new(:status => :something_else)}.should raise_error
+      end
     end
 
     describe "- persistence" do

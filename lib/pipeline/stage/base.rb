@@ -3,6 +3,8 @@ module Pipeline
     class Base < ActiveRecord::Base
       set_table_name :pipeline_stages
       symbol_attr :status
+      transactional_attr :status
+      private :status=
 
       belongs_to :pipeline, :class_name => "Pipeline::Base"
       
@@ -20,23 +22,26 @@ module Pipeline
       
       def after_initialize
         self.name ||= self.class.to_s
-        self.status = :not_started if new_record?
+        self[:status] = :not_started if new_record?
       end
       
       def execute
-        self.attempts += 1
+        _setup
         perform
         self.status = :completed
       rescue => e
         self.status = :failed
         raise e
-      ensure
-        save!
       end
       
       # Subclass must implement this as part of the contract
       def perform; end
       
+      private
+      def _setup
+        self.attempts += 1
+        self.status = :in_progress
+      end
     end
   end
 end
