@@ -36,13 +36,15 @@ module Pipeline
       
       def execute
         raise InvalidStatusError.new(status) unless [:not_started, :failed].include?(status)
-        _setup
-        perform
-        self.status = :completed
-      rescue => e
-        self.message = e.message
-        self.status = :failed
-        raise e
+        begin
+          _setup
+          perform
+          self.status = :completed
+        rescue => e
+          self.message = e.message
+          self.status = :failed
+          raise e
+        end
       end
       
       # Subclass must implement this as part of the contract

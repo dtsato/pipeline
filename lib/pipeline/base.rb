@@ -30,19 +30,23 @@ module Pipeline
     
     def execute
       raise InvalidStatusError.new(status) unless [:not_started, :paused].include?(status)
-      _setup
-      stages.each do |stage|
-        stage.execute unless stage.completed?
-      end
-      self.status = :completed
-    rescue IrrecoverableError
-      self.status = :failed
-    rescue RecoverableError => e
-      if e.input_required?
-        self.status = :paused
-      else
+      begin
+        _setup
+        stages.each do |stage|
+          stage.execute unless stage.completed?
+        end
+        self.status = :completed
+      rescue IrrecoverableError
         self.status = :failed
-        raise e
+      rescue RecoverableError => e
+        if e.input_required?
+          self.status = :paused
+        else
+          self.status = :failed
+          raise e
+        end
+      rescue
+        self.status = :paused
       end
     end
     

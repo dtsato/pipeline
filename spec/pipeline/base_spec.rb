@@ -221,6 +221,30 @@ module Pipeline
       end
     end
 
+    describe "- execution (other errors will pause the pipeline)" do
+      before(:each) do
+        failed_stage = SecondStage.new
+        failed_stage.stub!(:perform).and_raise(StandardError.new)
+        SecondStage.stub!(:new).and_return(failed_stage)
+        @pipeline = SamplePipeline.new
+      end
+
+      it "should not re-raise error" do
+        lambda {@pipeline.execute}.should_not raise_error(StandardError)
+      end
+      
+      it "should update status" do
+        @pipeline.execute
+        @pipeline.status.should == :paused
+      end
+      
+      it "should save status" do
+        @pipeline.save!
+        @pipeline.execute
+        @pipeline.reload.status.should == :paused
+      end
+    end
+
     describe "- execution (retrying)" do
       before(:each) do
         @passing_stage = FirstStage.new
