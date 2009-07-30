@@ -4,6 +4,16 @@
 
 Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable pipeline.
 
+== Features
+
+* Execution of sequential user-defined stages in an asynchronous pipeline
+* Persistence of pipeline instances and stages
+* Error recovery strategies:
+  * Irrecoverable errors fail the entire pipeline
+  * Recoverable errors are automatically retried (using dj's exponential retry strategy)
+  * Recoverable errors that require user input pause the pipeline for further retry
+* Cancelling of a paused pipeline
+
 == Installation
 
 Add the following lines to your config/environment.rb file:
@@ -27,6 +37,8 @@ You will also need to run your Delayed Job workers that will process the pipelin
 * Delayed job (http://github.com/collectiveidea/delayed_job/tree/master)
 
 == Usage
+
+Check <tt>examples</tt> for more examples (including error-recovery and cancelling)
 
   class Step1 < Pipeline::Stage::Base
     def perform

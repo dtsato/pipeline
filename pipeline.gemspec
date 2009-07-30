@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Danilo Sato"]
-  s.date = %q{2009-07-29}
+  s.date = %q{2009-07-30}
   s.description = %q{Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable pipeline.}
   s.email = %q{danilo@dtsato.com}
   s.extra_rdoc_files = [
@@ -29,16 +29,16 @@ Gem::Specification.new do |s|
      "lib/pipeline/base.rb",
      "lib/pipeline/core_ext/symbol_attribute.rb",
      "lib/pipeline/core_ext/transactional_attribute.rb",
+     "lib/pipeline/errors.rb",
      "lib/pipeline/stage/base.rb",
-     "lib/pipeline/worker_engine.rb",
      "pipeline.gemspec",
      "spec/database_integration_helper.rb",
      "spec/pipeline/api_methods_spec.rb",
      "spec/pipeline/base_spec.rb",
      "spec/pipeline/core_ext/symbol_attribute_spec.rb",
      "spec/pipeline/core_ext/transactional_attribute_spec.rb",
+     "spec/pipeline/errors_spec.rb",
      "spec/pipeline/stage/base_spec.rb",
-     "spec/pipeline/worker_engine_spec.rb",
      "spec/rcov.opts",
      "spec/spec.opts",
      "spec/spec_helper.rb"
@@ -56,9 +56,9 @@ Gem::Specification.new do |s|
      "spec/pipeline/core_ext",
      "spec/pipeline/core_ext/symbol_attribute_spec.rb",
      "spec/pipeline/core_ext/transactional_attribute_spec.rb",
+     "spec/pipeline/errors_spec.rb",
      "spec/pipeline/stage",
      "spec/pipeline/stage/base_spec.rb",
-     "spec/pipeline/worker_engine_spec.rb",
      "spec/rcov.opts",
      "spec/spec.opts",
      "spec/spec_helper.rb"

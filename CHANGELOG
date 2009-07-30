@@ -1,4 +1,12 @@
-0.0.0
+0.0.1
 =====
 
-Initial Release
+Initial Release:
+* Execution of sequential user-defined stages in an asynchronous pipeline
+* Persistence of pipeline instances and stages
+* Error recovery strategies:
+  * Irrecoverable errors fail the entire pipeline
+  * Recoverable errors are automatically retried (using dj's exponential retry strategy)
+  * Recoverable errors that require user input pause the pipeline for further retry
+* Cancelling of a paused pipeline
+
