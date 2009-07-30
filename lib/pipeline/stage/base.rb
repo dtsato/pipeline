@@ -34,7 +34,7 @@ module Pipeline
         status == :completed
       end
       
-      def execute
+      def perform
         raise InvalidStatusError.new(status) unless [:not_started, :failed].include?(status)
         begin
           _setup

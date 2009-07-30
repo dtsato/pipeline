@@ -3,12 +3,13 @@ module Pipeline
     def start(pipeline)
       raise InvalidPipelineError.new("Not a valid pipeline") unless pipeline.is_a?(Pipeline::Base)
       pipeline.save!
-      Delayed::Job.enqueue(WorkerEngine.new(pipeline.id))
+      Delayed::Job.enqueue(pipeline)
       pipeline.id
     end
     
     def restart(id)
-      Delayed::Job.enqueue(WorkerEngine.new(id))
+      pipeline = Base.find(id)
+      Delayed::Job.enqueue(pipeline)
     end
   end
 end

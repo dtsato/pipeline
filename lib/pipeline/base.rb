@@ -28,12 +28,12 @@ module Pipeline
       end
     end
     
-    def execute
+    def perform
       raise InvalidStatusError.new(status) unless [:not_started, :paused].include?(status)
       begin
         _setup
         stages.each do |stage|
-          stage.execute unless stage.completed?
+          stage.perform unless stage.completed?
         end
         self.status = :completed
       rescue IrrecoverableError

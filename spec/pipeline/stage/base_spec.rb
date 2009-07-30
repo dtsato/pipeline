@@ -84,30 +84,30 @@ module Pipeline
         end
         
         it "should update status after finished" do
-          @stage.execute
+          @stage.perform
           @stage.status.should == :completed
           @stage.should be_completed
         end
         
         it "should save status" do
           @stage.save!
-          @stage.execute
+          @stage.perform
           @stage.reload.status.should == :completed
           @stage.reload.should be_completed
         end
         
         it "should increment attempts" do
           @stage.stub!(:run).and_raise(StandardError.new)
-          lambda {@stage.execute}.should raise_error(StandardError)
+          lambda {@stage.perform}.should raise_error(StandardError)
           @stage.attempts.should == 1
 
-          lambda {@stage.execute}.should raise_error(StandardError)
+          lambda {@stage.perform}.should raise_error(StandardError)
           @stage.attempts.should == 2
         end
         
         it "should call template method #run" do
           @stage.should_not be_executed
-          @stage.execute
+          @stage.perform
           @stage.should be_executed
         end
       end
@@ -119,40 +119,40 @@ module Pipeline
         end
 
         it "should re-raise error" do
-          lambda {@stage.execute}.should raise_error
+          lambda {@stage.perform}.should raise_error
         end
         
         it "should update status on irrecoverable error" do
           @stage.should_receive(:run).and_raise(IrrecoverableError.new)
-          lambda {@stage.execute}.should raise_error(IrrecoverableError)
+          lambda {@stage.perform}.should raise_error(IrrecoverableError)
           @stage.status.should == :failed
           @stage.reload.status.should == :failed
         end
 
         it "should update message on irrecoverable error" do
           @stage.should_receive(:run).and_raise(IrrecoverableError.new("message"))
-          lambda {@stage.execute}.should raise_error(IrrecoverableError)
+          lambda {@stage.perform}.should raise_error(IrrecoverableError)
           @stage.message.should == "message"
           @stage.reload.message.should == "message"
         end
 
         it "should update status on recoverable error (not requiring input)" do
           @stage.should_receive(:run).and_raise(RecoverableError.new)
-          lambda {@stage.execute}.should raise_error(RecoverableError)
+          lambda {@stage.perform}.should raise_error(RecoverableError)
           @stage.status.should == :failed
           @stage.reload.status.should == :failed
         end
 
         it "should update status on recoverable error (requiring input)" do
           @stage.should_receive(:run).and_raise(RecoverableError.new("message", true))
-          lambda {@stage.execute}.should raise_error(RecoverableError)
+          lambda {@stage.perform}.should raise_error(RecoverableError)
           @stage.status.should == :failed
           @stage.reload.status.should == :failed
         end
 
         it "should update message on recoverable error" do
           @stage.should_receive(:run).and_raise(RecoverableError.new("message"))
-          lambda {@stage.execute}.should raise_error(RecoverableError)
+          lambda {@stage.perform}.should raise_error(RecoverableError)
           @stage.message.should == "message"
           @stage.reload.message.should == "message"
         end
@@ -173,28 +173,28 @@ module Pipeline
         it "should execute if status is :not_started" do
           stage = SampleStage.new
           
-          lambda {stage.execute}.should_not raise_error(InvalidStatusError)
+          lambda {stage.perform}.should_not raise_error(InvalidStatusError)
         end
 
         it "should execute if status is :failed (for retrying)" do
           stage = SampleStage.new
           stage.send(:status=, :failed)
           
-          lambda {stage.execute}.should_not raise_error(InvalidStatusError)
+          lambda {stage.perform}.should_not raise_error(InvalidStatusError)
         end
         
         it "should not execute if status is :in_progress" do
           stage = SampleStage.new
           stage.send(:status=, :in_progress)
           
-          lambda {stage.execute}.should raise_error(InvalidStatusError, "Status is already in progress")
+          lambda {stage.perform}.should raise_error(InvalidStatusError, "Status is already in progress")
         end
 
         it "should not execute if status is :completed" do
           stage = SampleStage.new
           stage.send(:status=, :completed)
 
-          lambda {stage.execute}.should raise_error(InvalidStatusError, "Status is already completed")
+          lambda {stage.perform}.should raise_error(InvalidStatusError, "Status is already completed")
         end
       end
 

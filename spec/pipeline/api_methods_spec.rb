@@ -24,7 +24,7 @@ module Pipeline
       end
 
       it "should start a worker for a pipeline instance" do
-        Delayed::Job.should_receive(:enqueue).with(an_instance_of(WorkerEngine))
+        Delayed::Job.should_receive(:enqueue).with(@pipeline)
         
         Pipeline.start(@pipeline)
       end
@@ -39,17 +39,19 @@ module Pipeline
 
     describe "#restart" do
       before(:each) do
+        @pipeline = Pipeline::Base.new
         Delayed::Job.stub!(:enqueue)
       end
       
       it "should accept a token for a pipeline instance" do
-        WorkerEngine.should_receive(:new).with('1')
+        Pipeline::Base.should_receive(:find).with('1')
 
         Pipeline.restart('1')
       end
     
       it "should start a new worker for that pipeline instance" do
-        Delayed::Job.should_receive(:enqueue).with(an_instance_of(WorkerEngine))
+        Pipeline::Base.stub!(:find).with('1').and_return(@pipeline)
+        Delayed::Job.should_receive(:enqueue).with(@pipeline)
         
         Pipeline.restart('1')
       end

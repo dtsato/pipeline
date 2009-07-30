@@ -114,27 +114,27 @@ module Pipeline
         
         pipeline = SamplePipeline.new
         
-        pipeline.execute
+        pipeline.perform
         pipeline.attempts.should == 1
 
-        pipeline.execute
+        pipeline.perform
         pipeline.attempts.should == 2
       end
       
-      it "should execute each stage" do
+      it "should perform each stage" do
         @pipeline.stages.each { |stage| stage.should_not be_executed }
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.stages.each { |stage| stage.should be_executed }
       end
       
       it "should update pipeline status after all stages finished" do
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.status.should == :completed
       end
       
       it "should save status" do
         @pipeline.save!
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.reload.status.should == :completed
       end
     end
@@ -158,17 +158,17 @@ module Pipeline
       end
 
       it "should not re-raise error" do
-        lambda {@pipeline.execute}.should_not raise_error(IrrecoverableError)
+        lambda {@pipeline.perform}.should_not raise_error(IrrecoverableError)
       end
       
       it "should update status" do
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.status.should == :failed
       end
       
       it "should save status" do
         @pipeline.save!
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.reload.status.should == :failed
       end
     end
@@ -182,17 +182,17 @@ module Pipeline
       end
 
       it "should re-raise error (so delayed_job retry works)" do
-        lambda {@pipeline.execute}.should raise_error(RecoverableError)
+        lambda {@pipeline.perform}.should raise_error(RecoverableError)
       end
       
       it "should update status" do
-        lambda {@pipeline.execute}.should raise_error(RecoverableError)
+        lambda {@pipeline.perform}.should raise_error(RecoverableError)
         @pipeline.status.should == :failed
       end
       
       it "should save status" do
         @pipeline.save!
-        lambda {@pipeline.execute}.should raise_error(RecoverableError)
+        lambda {@pipeline.perform}.should raise_error(RecoverableError)
         @pipeline.reload.status.should == :failed
       end
     end
@@ -206,17 +206,17 @@ module Pipeline
       end
 
       it "should not re-raise error" do
-        lambda {@pipeline.execute}.should_not raise_error(RecoverableError)
+        lambda {@pipeline.perform}.should_not raise_error(RecoverableError)
       end
       
       it "should update status" do
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.status.should == :paused
       end
       
       it "should save status" do
         @pipeline.save!
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.reload.status.should == :paused
       end
     end
@@ -230,17 +230,17 @@ module Pipeline
       end
 
       it "should not re-raise error" do
-        lambda {@pipeline.execute}.should_not raise_error(StandardError)
+        lambda {@pipeline.perform}.should_not raise_error(StandardError)
       end
       
       it "should update status" do
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.status.should == :paused
       end
       
       it "should save status" do
         @pipeline.save!
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.reload.status.should == :paused
       end
     end
@@ -257,26 +257,26 @@ module Pipeline
       end
 
       it "should not re-raise error" do
-        lambda {@pipeline.execute}.should_not raise_error(RecoverableError)
+        lambda {@pipeline.perform}.should_not raise_error(RecoverableError)
       end
       
       it "should update status" do
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.status.should == :paused
       end
       
       it "should save status" do
         @pipeline.save!
-        @pipeline.execute
+        @pipeline.perform
         @pipeline.reload.status.should == :paused
       end
       
       it "should skip completed stages" do
-        @pipeline.execute
+        @pipeline.perform
         @passing_stage.attempts.should == 1
         @failed_stage.attempts.should == 1
         
-        @pipeline.execute
+        @pipeline.perform
         @passing_stage.attempts.should == 1
         @failed_stage.attempts.should == 2
       end
@@ -286,35 +286,35 @@ module Pipeline
       it "should execute if status is :not_started" do
         pipeline = SamplePipeline.new
         
-        lambda {pipeline.execute}.should_not raise_error(InvalidStatusError)
+        lambda {pipeline.perform}.should_not raise_error(InvalidStatusError)
       end
 
       it "should execute if status is :paused (for retrying)" do
         pipeline = SamplePipeline.new
         pipeline.send(:status=, :paused)
         
-        lambda {pipeline.execute}.should_not raise_error(InvalidStatusError)
+        lambda {pipeline.perform}.should_not raise_error(InvalidStatusError)
       end
       
       it "should not execute if status is :in_progress" do
         pipeline = SamplePipeline.new
         pipeline.send(:status=, :in_progress)
         
-        lambda {pipeline.execute}.should raise_error(InvalidStatusError, "Status is already in progress")
+        lambda {pipeline.perform}.should raise_error(InvalidStatusError, "Status is already in progress")
       end
 
       it "should not execute if status is :completed" do
         pipeline = SamplePipeline.new
         pipeline.send(:status=, :completed)
         
-        lambda {pipeline.execute}.should raise_error(InvalidStatusError, "Status is already completed")
+        lambda {pipeline.perform}.should raise_error(InvalidStatusError, "Status is already completed")
       end
 
       it "should not execute if status is :failed" do
         pipeline = SamplePipeline.new
         pipeline.send(:status=, :failed)
         
-        lambda {pipeline.execute}.should raise_error(InvalidStatusError, "Status is already failed")
+        lambda {pipeline.perform}.should raise_error(InvalidStatusError, "Status is already failed")
       end
     end
     

@@ -10,7 +10,6 @@ require 'pipeline/api_methods'
 require 'pipeline/base'
 require 'pipeline/errors'
 require 'pipeline/stage/base'
-require 'pipeline/worker_engine'
 
 module Pipeline
   extend(ApiMethods)
