@@ -4,7 +4,9 @@ module Pipeline
       set_table_name :pipeline_stages
       
       # :not_started ---> :in_progress ---> :completed
-      #                                 \-> :failed
+      #                       ^ |
+      #                       | v
+      #                     :failed
       symbol_attr :status
       transactional_attr :status
       private :status=
