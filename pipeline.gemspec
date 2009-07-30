@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{pipeline}
-  s.version = "0.0.0"
+  s.version = "0.0.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Danilo Sato"]
@@ -19,7 +19,10 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "VERSION",
+     "examples/auto_recoverable_pipeline.rb",
+     "examples/cancelling_pipeline.rb",
      "examples/two_step_pipeline.rb",
+     "examples/user_recoverable_pipeline.rb",
      "generators/pipeline/pipeline_generator.rb",
      "generators/pipeline/templates/pipeline_instances_migration.rb",
      "generators/pipeline/templates/pipeline_stages_migration.rb",
