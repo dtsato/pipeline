@@ -18,7 +18,7 @@ Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable p
 
 Add the following lines to your config/environment.rb file:
 
-  config.gem "dtsato-pipeline", :version => ">= 0.0.1", :source => "http://gems.github.com"
+  config.gem "pipeline", :version => ">= 0.0.2"
 
 Run the following:
 
