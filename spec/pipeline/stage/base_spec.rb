@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
 class SampleStage < Pipeline::Stage::Base
-  def perform
+  def run
     @executed = true
   end
   
@@ -97,7 +97,7 @@ module Pipeline
         end
         
         it "should increment attempts" do
-          @stage.stub!(:perform).and_raise(StandardError.new)
+          @stage.stub!(:run).and_raise(StandardError.new)
           lambda {@stage.execute}.should raise_error(StandardError)
           @stage.attempts.should == 1
 
@@ -105,7 +105,7 @@ module Pipeline
           @stage.attempts.should == 2
         end
         
-        it "should call template method #perform" do
+        it "should call template method #run" do
           @stage.should_not be_executed
           @stage.execute
           @stage.should be_executed
@@ -115,7 +115,7 @@ module Pipeline
       describe "- execution (failure)" do
         before(:each) do
           @stage = SampleStage.new
-          @stage.stub!(:perform).and_raise(StandardError.new)
+          @stage.stub!(:run).and_raise(StandardError.new)
         end
 
         it "should re-raise error" do
@@ -123,35 +123,35 @@ module Pipeline
         end
         
         it "should update status on irrecoverable error" do
-          @stage.should_receive(:perform).and_raise(IrrecoverableError.new)
+          @stage.should_receive(:run).and_raise(IrrecoverableError.new)
           lambda {@stage.execute}.should raise_error(IrrecoverableError)
           @stage.status.should == :failed
           @stage.reload.status.should == :failed
         end
 
         it "should update message on irrecoverable error" do
-          @stage.should_receive(:perform).and_raise(IrrecoverableError.new("message"))
+          @stage.should_receive(:run).and_raise(IrrecoverableError.new("message"))
           lambda {@stage.execute}.should raise_error(IrrecoverableError)
           @stage.message.should == "message"
           @stage.reload.message.should == "message"
         end
 
         it "should update status on recoverable error (not requiring input)" do
-          @stage.should_receive(:perform).and_raise(RecoverableError.new)
+          @stage.should_receive(:run).and_raise(RecoverableError.new)
           lambda {@stage.execute}.should raise_error(RecoverableError)
           @stage.status.should == :failed
           @stage.reload.status.should == :failed
         end
 
         it "should update status on recoverable error (requiring input)" do
-          @stage.should_receive(:perform).and_raise(RecoverableError.new("message", true))
+          @stage.should_receive(:run).and_raise(RecoverableError.new("message", true))
           lambda {@stage.execute}.should raise_error(RecoverableError)
           @stage.status.should == :failed
           @stage.reload.status.should == :failed
         end
 
         it "should update message on recoverable error" do
-          @stage.should_receive(:perform).and_raise(RecoverableError.new("message"))
+          @stage.should_receive(:run).and_raise(RecoverableError.new("message"))
           lambda {@stage.execute}.should raise_error(RecoverableError)
           @stage.message.should == "message"
           @stage.reload.message.should == "message"

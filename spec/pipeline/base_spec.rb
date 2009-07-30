@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 class FirstStage < Pipeline::Stage::Base
-  def perform
+  def run
     @executed = true
   end
   
@@ -109,7 +109,7 @@ module Pipeline
 
       it "should increment attempts" do
         failed_stage = SecondStage.new
-        failed_stage.stub!(:perform).and_raise(RecoverableError.new("message", true))
+        failed_stage.stub!(:run).and_raise(RecoverableError.new("message", true))
         SecondStage.stub!(:new).and_return(failed_stage)
         
         pipeline = SamplePipeline.new
@@ -152,7 +152,7 @@ module Pipeline
     describe "- execution (irrecoverable error)" do
       before(:each) do
         failed_stage = SecondStage.new
-        failed_stage.stub!(:perform).and_raise(IrrecoverableError.new)
+        failed_stage.stub!(:run).and_raise(IrrecoverableError.new)
         SecondStage.stub!(:new).and_return(failed_stage)
         @pipeline = SamplePipeline.new
       end
@@ -176,7 +176,7 @@ module Pipeline
     describe "- execution (recoverable error that doesn't require user input)" do
       before(:each) do
         failed_stage = SecondStage.new
-        failed_stage.stub!(:perform).and_raise(RecoverableError.new)
+        failed_stage.stub!(:run).and_raise(RecoverableError.new)
         SecondStage.stub!(:new).and_return(failed_stage)
         @pipeline = SamplePipeline.new
       end
@@ -200,7 +200,7 @@ module Pipeline
     describe "- execution (recoverable error that requires user input)" do
       before(:each) do
         failed_stage = SecondStage.new
-        failed_stage.stub!(:perform).and_raise(RecoverableError.new('message', true))
+        failed_stage.stub!(:run).and_raise(RecoverableError.new('message', true))
         SecondStage.stub!(:new).and_return(failed_stage)
         @pipeline = SamplePipeline.new
       end
@@ -224,7 +224,7 @@ module Pipeline
     describe "- execution (other errors will pause the pipeline)" do
       before(:each) do
         failed_stage = SecondStage.new
-        failed_stage.stub!(:perform).and_raise(StandardError.new)
+        failed_stage.stub!(:run).and_raise(StandardError.new)
         SecondStage.stub!(:new).and_return(failed_stage)
         @pipeline = SamplePipeline.new
       end
@@ -251,7 +251,7 @@ module Pipeline
         FirstStage.stub!(:new).and_return(@passing_stage)
         
         @failed_stage = SecondStage.new
-        @failed_stage.stub!(:perform).and_raise(RecoverableError.new('message', true))
+        @failed_stage.stub!(:run).and_raise(RecoverableError.new('message', true))
         SecondStage.stub!(:new).and_return(@failed_stage)
         @pipeline = SamplePipeline.new
       end

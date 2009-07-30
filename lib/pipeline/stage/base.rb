@@ -38,7 +38,7 @@ module Pipeline
         raise InvalidStatusError.new(status) unless [:not_started, :failed].include?(status)
         begin
           _setup
-          perform
+          run
           self.status = :completed
         rescue => e
           self.message = e.message
@@ -48,7 +48,7 @@ module Pipeline
       end
       
       # Subclass must implement this as part of the contract
-      def perform; end
+      def run; end
       
       private
       def _setup
