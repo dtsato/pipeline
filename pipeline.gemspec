@@ -49,6 +49,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/dtsato/pipeline}
   s.rdoc_options = ["--main", "README.rdoc", "--inline-source", "--line-numbers"]
   s.require_paths = ["lib"]
+  s.rubyforge_project = %q{pipeline}
   s.rubygems_version = %q{1.3.4}
   s.summary = %q{A Rails plugin/gem to run asynchronous processes in a configurable pipeline}
   s.test_files = [
