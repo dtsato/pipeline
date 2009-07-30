@@ -28,13 +28,19 @@ module Pipeline
         self[:status] = :not_started if new_record?
       end
       
+      def completed?
+        status == :completed
+      end
+      
       def execute
+        raise InvalidStatusError.new(status) unless [:not_started, :failed].include?(status)
         _setup
         perform
         self.status = :completed
-      rescue
+      rescue => e
+        self.message = e.message
         self.status = :failed
-        raise
+        raise e
       end
       
       # Subclass must implement this as part of the contract

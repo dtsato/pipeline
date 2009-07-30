@@ -108,11 +108,17 @@ module Pipeline
       end
 
       it "should increment attempts" do
-        @pipeline.execute
-        @pipeline.attempts.should == 1
+        failed_stage = SecondStage.new
+        failed_stage.stub!(:perform).and_raise(RecoverableError.new("message", true))
+        SecondStage.stub!(:new).and_return(failed_stage)
+        
+        pipeline = SamplePipeline.new
+        
+        pipeline.execute
+        pipeline.attempts.should == 1
 
-        @pipeline.execute
-        @pipeline.attempts.should == 2
+        pipeline.execute
+        pipeline.attempts.should == 2
       end
       
       it "should execute each stage" do
@@ -194,7 +200,7 @@ module Pipeline
     describe "- execution (recoverable error that requires user input)" do
       before(:each) do
         failed_stage = SecondStage.new
-        failed_stage.stub!(:perform).and_raise(RecoverableError.new(true))
+        failed_stage.stub!(:perform).and_raise(RecoverableError.new('message', true))
         SecondStage.stub!(:new).and_return(failed_stage)
         @pipeline = SamplePipeline.new
       end
@@ -212,6 +218,43 @@ module Pipeline
         @pipeline.save!
         @pipeline.execute
         @pipeline.reload.status.should == :paused
+      end
+    end
+
+    describe "- execution (retrying)" do
+      before(:each) do
+        @passing_stage = FirstStage.new
+        FirstStage.stub!(:new).and_return(@passing_stage)
+        
+        @failed_stage = SecondStage.new
+        @failed_stage.stub!(:perform).and_raise(RecoverableError.new('message', true))
+        SecondStage.stub!(:new).and_return(@failed_stage)
+        @pipeline = SamplePipeline.new
+      end
+
+      it "should not re-raise error" do
+        lambda {@pipeline.execute}.should_not raise_error(RecoverableError)
+      end
+      
+      it "should update status" do
+        @pipeline.execute
+        @pipeline.status.should == :paused
+      end
+      
+      it "should save status" do
+        @pipeline.save!
+        @pipeline.execute
+        @pipeline.reload.status.should == :paused
+      end
+      
+      it "should skip completed stages" do
+        @pipeline.execute
+        @passing_stage.attempts.should == 1
+        @failed_stage.attempts.should == 1
+        
+        @pipeline.execute
+        @passing_stage.attempts.should == 1
+        @failed_stage.attempts.should == 2
       end
     end
   end

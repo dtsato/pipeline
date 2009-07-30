@@ -86,19 +86,22 @@ module Pipeline
         it "should update status after finished" do
           @stage.execute
           @stage.status.should == :completed
+          @stage.should be_completed
         end
         
         it "should save status" do
           @stage.save!
           @stage.execute
           @stage.reload.status.should == :completed
+          @stage.reload.should be_completed
         end
         
         it "should increment attempts" do
-          @stage.execute
+          @stage.stub!(:perform).and_raise(StandardError.new)
+          lambda {@stage.execute}.should raise_error(StandardError)
           @stage.attempts.should == 1
 
-          @stage.execute
+          lambda {@stage.execute}.should raise_error(StandardError)
           @stage.attempts.should == 2
         end
         
@@ -123,25 +126,37 @@ module Pipeline
           @stage.should_receive(:perform).and_raise(IrrecoverableError.new)
           lambda {@stage.execute}.should raise_error(IrrecoverableError)
           @stage.status.should == :failed
+          @stage.reload.status.should == :failed
+        end
+
+        it "should update message on irrecoverable error" do
+          @stage.should_receive(:perform).and_raise(IrrecoverableError.new("message"))
+          lambda {@stage.execute}.should raise_error(IrrecoverableError)
+          @stage.message.should == "message"
+          @stage.reload.message.should == "message"
         end
 
         it "should update status on recoverable error (not requiring input)" do
           @stage.should_receive(:perform).and_raise(RecoverableError.new)
           lambda {@stage.execute}.should raise_error(RecoverableError)
           @stage.status.should == :failed
+          @stage.reload.status.should == :failed
         end
 
         it "should update status on recoverable error (requiring input)" do
-          @stage.should_receive(:perform).and_raise(RecoverableError.new(true))
+          @stage.should_receive(:perform).and_raise(RecoverableError.new("message", true))
           lambda {@stage.execute}.should raise_error(RecoverableError)
           @stage.status.should == :failed
-        end
-        
-        it "should save status" do
-          @stage.save!
-          lambda {@stage.execute}.should raise_error
           @stage.reload.status.should == :failed
         end
+
+        it "should update message on recoverable error" do
+          @stage.should_receive(:perform).and_raise(RecoverableError.new("message"))
+          lambda {@stage.execute}.should raise_error(RecoverableError)
+          @stage.message.should == "message"
+          @stage.reload.message.should == "message"
+        end
+
       end
       
       describe "- execution (in progress)" do
@@ -151,6 +166,36 @@ module Pipeline
           
           stage.status.should == :in_progress
           stage.reload.status.should == :in_progress
+        end
+      end
+      
+      describe "- execution (state transitions)" do
+        it "should execute if status is :not_started" do
+          stage = SampleStage.new
+          
+          lambda {stage.execute}.should_not raise_error(InvalidStatusError)
+        end
+
+        it "should execute if status is :failed (for retrying)" do
+          stage = SampleStage.new
+          stage.stub!(:perform).and_raise(RecoverableError.new)
+          
+          lambda {stage.execute}.should_not raise_error(InvalidStatusError)
+          lambda {stage.execute}.should_not raise_error(InvalidStatusError)
+        end
+        
+        it "should not execute if status is :in_progress" do
+          stage = SampleStage.new
+          stage.send(:_setup)
+          
+          lambda {stage.execute}.should raise_error(InvalidStatusError, "Status is already in progress")
+        end
+
+        it "should not execute if status is :completed" do
+          stage = SampleStage.new
+
+          lambda {stage.execute}.should_not raise_error(InvalidStatusError)
+          lambda {stage.execute}.should raise_error(InvalidStatusError, "Status is already completed")
         end
       end
 

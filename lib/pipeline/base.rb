@@ -31,7 +31,7 @@ module Pipeline
     def execute
       _setup
       stages.each do |stage|
-        stage.execute
+        stage.execute unless stage.completed?
       end
       self.status = :completed
     rescue IrrecoverableError
