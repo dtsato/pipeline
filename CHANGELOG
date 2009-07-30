@@ -1,7 +1,15 @@
+0.0.2
+=====
+
+Bug Fix:
+* Bundling migrations on generator to avoid timestamp clashing
+
 0.0.1
 =====
 
-Initial Release:
+Initial Release
+
+Features:
 * Execution of sequential user-defined stages in an asynchronous pipeline
 * Persistence of pipeline instances and stages
 * Error recovery strategies:
