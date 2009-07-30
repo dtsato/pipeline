@@ -29,9 +29,10 @@ module Pipeline
         _setup
         perform
         self.status = :completed
-      rescue => e
+      rescue
         self.status = :failed
-        raise e
+        raise
+        
       end
       
       # Subclass must implement this as part of the contract

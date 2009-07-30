@@ -29,9 +29,9 @@ module Pipeline
         stage.execute
       end
       self.status = :completed
-    rescue => e
+    rescue
       self.status = :failed
-      raise e
+      raise
     end
     
     private
