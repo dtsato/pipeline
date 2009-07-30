@@ -1,6 +1,11 @@
 module Pipeline
   class Base < ActiveRecord::Base
     set_table_name :pipeline_instances
+    
+    # :not_started ---> :in_progress ---> :completed
+    #                       ^ |       \-> :failed
+    #                       | v
+    #                     :paused
     symbol_attr :status
     transactional_attr :status
     private :status=
@@ -29,9 +34,15 @@ module Pipeline
         stage.execute
       end
       self.status = :completed
-    rescue
+    rescue IrrecoverableError
       self.status = :failed
-      raise
+    rescue RecoverableError => e
+      if e.input_required?
+        self.status = :paused
+      else
+        self.status = :failed
+        raise e
+      end
     end
     
     private

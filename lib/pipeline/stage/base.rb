@@ -2,6 +2,9 @@ module Pipeline
   module Stage
     class Base < ActiveRecord::Base
       set_table_name :pipeline_stages
+      
+      # :not_started ---> :in_progress ---> :completed
+      #                                 \-> :failed
       symbol_attr :status
       transactional_attr :status
       private :status=
@@ -32,7 +35,6 @@ module Pipeline
       rescue
         self.status = :failed
         raise
-        
       end
       
       # Subclass must implement this as part of the contract

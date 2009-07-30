@@ -146,26 +146,73 @@ module Pipeline
     describe "- execution (irrecoverable error)" do
       before(:each) do
         failed_stage = SecondStage.new
-        failed_stage.stub!(:perform).and_raise("Failure")
+        failed_stage.stub!(:perform).and_raise(IrrecoverableError.new)
         SecondStage.stub!(:new).and_return(failed_stage)
         @pipeline = SamplePipeline.new
       end
 
-      it "should re-raise error" do
-        lambda {@pipeline.execute}.should raise_error
+      it "should not re-raise error" do
+        lambda {@pipeline.execute}.should_not raise_error(IrrecoverableError)
       end
       
       it "should update status" do
-        lambda {@pipeline.execute}.should raise_error
+        @pipeline.execute
         @pipeline.status.should == :failed
       end
       
       it "should save status" do
         @pipeline.save!
-        lambda {@pipeline.execute}.should raise_error
+        @pipeline.execute
         @pipeline.reload.status.should == :failed
       end
+    end
+    
+    describe "- execution (recoverable error that doesn't require user input)" do
+      before(:each) do
+        failed_stage = SecondStage.new
+        failed_stage.stub!(:perform).and_raise(RecoverableError.new)
+        SecondStage.stub!(:new).and_return(failed_stage)
+        @pipeline = SamplePipeline.new
+      end
+
+      it "should re-raise error (so delayed_job retry works)" do
+        lambda {@pipeline.execute}.should raise_error(RecoverableError)
+      end
       
+      it "should update status" do
+        lambda {@pipeline.execute}.should raise_error(RecoverableError)
+        @pipeline.status.should == :failed
+      end
+      
+      it "should save status" do
+        @pipeline.save!
+        lambda {@pipeline.execute}.should raise_error(RecoverableError)
+        @pipeline.reload.status.should == :failed
+      end
+    end
+
+    describe "- execution (recoverable error that requires user input)" do
+      before(:each) do
+        failed_stage = SecondStage.new
+        failed_stage.stub!(:perform).and_raise(RecoverableError.new(true))
+        SecondStage.stub!(:new).and_return(failed_stage)
+        @pipeline = SamplePipeline.new
+      end
+
+      it "should not re-raise error" do
+        lambda {@pipeline.execute}.should_not raise_error(RecoverableError)
+      end
+      
+      it "should update status" do
+        @pipeline.execute
+        @pipeline.status.should == :paused
+      end
+      
+      it "should save status" do
+        @pipeline.save!
+        @pipeline.execute
+        @pipeline.reload.status.should == :paused
+      end
     end
   end
 end

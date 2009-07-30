@@ -10,12 +10,6 @@ class SampleStage < Pipeline::Stage::Base
   end
 end
 
-class FailedStage < Pipeline::Stage::Base
-  def perform
-    raise "Can't execute"
-  end
-end
-
 module Pipeline
   module Stage
     describe Base do
@@ -117,15 +111,29 @@ module Pipeline
       
       describe "- execution (failure)" do
         before(:each) do
-          @stage = FailedStage.new
+          @stage = SampleStage.new
+          @stage.stub!(:perform).and_raise(StandardError.new)
         end
 
         it "should re-raise error" do
           lambda {@stage.execute}.should raise_error
         end
         
-        it "should update status" do
-          lambda {@stage.execute}.should raise_error
+        it "should update status on irrecoverable error" do
+          @stage.should_receive(:perform).and_raise(IrrecoverableError.new)
+          lambda {@stage.execute}.should raise_error(IrrecoverableError)
+          @stage.status.should == :failed
+        end
+
+        it "should update status on recoverable error (not requiring input)" do
+          @stage.should_receive(:perform).and_raise(RecoverableError.new)
+          lambda {@stage.execute}.should raise_error(RecoverableError)
+          @stage.status.should == :failed
+        end
+
+        it "should update status on recoverable error (requiring input)" do
+          @stage.should_receive(:perform).and_raise(RecoverableError.new(true))
+          lambda {@stage.execute}.should raise_error(RecoverableError)
           @stage.status.should == :failed
         end
         
