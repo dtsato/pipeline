@@ -14,7 +14,7 @@ module Pipeline
       
       it "should only accept instance of Pipeline::Base" do
         lambda {Pipeline.start(@pipeline)}.should_not raise_error
-        lambda {Pipeline.start(Object.new)}.should raise_error(InvalidPipelineError)
+        lambda {Pipeline.start(Object.new)}.should raise_error(InvalidPipelineError, "Invalid pipeline")
       end
 
       it "should save pipeline instance" do
@@ -23,7 +23,7 @@ module Pipeline
         Pipeline.start(@pipeline)
       end
 
-      it "should start a worker for a pipeline instance" do
+      it "should start a job for a pipeline instance" do
         Delayed::Job.should_receive(:enqueue).with(@pipeline)
         
         Pipeline.start(@pipeline)
@@ -37,25 +37,62 @@ module Pipeline
       end
     end
 
-    describe "#restart" do
+    describe "#resume" do
       before(:each) do
         @pipeline = Pipeline::Base.new
+        Pipeline::Base.stub!(:find).with('1').and_return(@pipeline)
         Delayed::Job.stub!(:enqueue)
       end
       
       it "should accept a token for a pipeline instance" do
         Pipeline::Base.should_receive(:find).with('1')
 
-        Pipeline.restart('1')
+        Pipeline.resume('1')
+      end
+
+      it "should raise error is trying to resume invalid pipeline" do
+        Pipeline::Base.should_receive(:find).and_return(nil)
+
+        lambda {Pipeline.resume('1')}.should raise_error(InvalidPipelineError, "Invalid pipeline")
       end
     
-      it "should start a new worker for that pipeline instance" do
-        Pipeline::Base.stub!(:find).with('1').and_return(@pipeline)
+      it "should start a new job for that pipeline instance" do
         Delayed::Job.should_receive(:enqueue).with(@pipeline)
         
-        Pipeline.restart('1')
+        Pipeline.resume('1')
       end
       
+      it "should raise error is trying to resume in invalid state" do
+        @pipeline.send(:_setup)
+
+        lambda {Pipeline.resume('1')}.should raise_error(InvalidStatusError, "Status is already in progress")
+      end
+
     end
+
+    describe "#cancel" do
+      before(:each) do
+        @pipeline = Pipeline::Base.new
+        @pipeline.stub!(:cancel)
+        Pipeline::Base.stub!(:find).with('1').and_return(@pipeline)
+      end
+      
+      it "should accept a token for a pipeline instance" do
+        Pipeline::Base.should_receive(:find).with('1')
+        Pipeline.cancel('1')
+      end
+
+      it "should raise error is trying to cancel invalid pipeline" do
+        Pipeline::Base.should_receive(:find).and_return(nil)
+
+        lambda {Pipeline.cancel('1')}.should raise_error(InvalidPipelineError, "Invalid pipeline")
+      end
+    
+      it "should cancel pipeline instance" do
+        @pipeline.should_receive(:cancel)
+        Pipeline.cancel('1')
+      end
+    end
+
   end
 end

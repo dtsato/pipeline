@@ -185,15 +185,15 @@ module Pipeline
         lambda {@pipeline.perform}.should raise_error(RecoverableError)
       end
       
-      it "should update status" do
+      it "should keep status :in_progress" do
         lambda {@pipeline.perform}.should raise_error(RecoverableError)
-        @pipeline.status.should == :failed
+        @pipeline.status.should == :in_progress
       end
       
       it "should save status" do
         @pipeline.save!
         lambda {@pipeline.perform}.should raise_error(RecoverableError)
-        @pipeline.reload.status.should == :failed
+        @pipeline.reload.status.should == :in_progress
       end
     end
 
@@ -283,38 +283,99 @@ module Pipeline
     end
     
     describe "- execution (state transitions)" do
+      before(:each) do
+        @pipeline = Base.new
+      end
+      
       it "should execute if status is :not_started" do
-        pipeline = SamplePipeline.new
-        
-        lambda {pipeline.perform}.should_not raise_error(InvalidStatusError)
+        @pipeline.should be_ok_to_resume
+        lambda {@pipeline.perform}.should_not raise_error(InvalidStatusError)
       end
 
       it "should execute if status is :paused (for retrying)" do
-        pipeline = SamplePipeline.new
-        pipeline.send(:status=, :paused)
+        @pipeline.send(:status=, :paused)
         
-        lambda {pipeline.perform}.should_not raise_error(InvalidStatusError)
+        @pipeline.should be_ok_to_resume
+        lambda {@pipeline.perform}.should_not raise_error(InvalidStatusError)
       end
       
       it "should not execute if status is :in_progress" do
-        pipeline = SamplePipeline.new
-        pipeline.send(:status=, :in_progress)
+        @pipeline.send(:status=, :in_progress)
         
-        lambda {pipeline.perform}.should raise_error(InvalidStatusError, "Status is already in progress")
+        @pipeline.should_not be_ok_to_resume
+        lambda {@pipeline.perform}.should raise_error(InvalidStatusError, "Status is already in progress")
       end
 
       it "should not execute if status is :completed" do
-        pipeline = SamplePipeline.new
-        pipeline.send(:status=, :completed)
+        @pipeline.send(:status=, :completed)
         
-        lambda {pipeline.perform}.should raise_error(InvalidStatusError, "Status is already completed")
+        @pipeline.should_not be_ok_to_resume
+        lambda {@pipeline.perform}.should raise_error(InvalidStatusError, "Status is already completed")
       end
 
       it "should not execute if status is :failed" do
-        pipeline = SamplePipeline.new
-        pipeline.send(:status=, :failed)
+        @pipeline.send(:status=, :failed)
         
-        lambda {pipeline.perform}.should raise_error(InvalidStatusError, "Status is already failed")
+        @pipeline.should_not be_ok_to_resume
+        lambda {@pipeline.perform}.should raise_error(InvalidStatusError, "Status is already failed")
+      end
+    end
+    
+    describe "- cancelling" do
+      before(:each) do
+        @passing_stage = FirstStage.new
+        FirstStage.stub!(:new).and_return(@passing_stage)
+        
+        @failed_stage = SecondStage.new
+        @failed_stage.stub!(:run).and_raise(RecoverableError.new('message', true))
+        SecondStage.stub!(:new).and_return(@failed_stage)
+        @pipeline = SamplePipeline.new
+        @pipeline.perform
+      end
+
+      it "should update status" do
+        @pipeline.cancel
+        @pipeline.status.should == :failed
+      end
+      
+      it "should save status" do
+        @pipeline.save!
+        @pipeline.cancel
+        @pipeline.reload.status.should == :failed
+      end
+    end
+
+    describe "- cancelling (state transitions)" do
+      before(:each) do
+        @pipeline = Base.new
+      end
+      
+      it "should cancel if status is :not_started" do
+        lambda {@pipeline.cancel}.should_not raise_error(InvalidStatusError)
+      end
+
+      it "should cancel if status is :paused (for retrying)" do
+        @pipeline.send(:status=, :paused)
+        
+        lambda {@pipeline.cancel}.should_not raise_error(InvalidStatusError)
+      end
+      
+      it "should not cancel if status is :in_progress" do
+        @pipeline.send(:status=, :in_progress)
+        
+        lambda {@pipeline.cancel}.should raise_error(InvalidStatusError, "Status is already in progress")
+      end
+
+      it "should not cancel if status is :completed" do
+        @pipeline.send(:status=, :completed)
+        
+        lambda {@pipeline.cancel}.should raise_error(InvalidStatusError, "Status is already completed")
+      end
+
+      it "should not cancel if status is :failed" do
+        @pipeline.send(:status=, :failed)
+        
+        lambda {@pipeline.cancel}.should raise_error(InvalidStatusError, "Status is already failed")
       end
     end
     

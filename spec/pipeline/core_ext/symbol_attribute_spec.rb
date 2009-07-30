@@ -9,6 +9,10 @@ end
 
 module Pipeline
   describe SymbolAttribute do
+    before(:each) do
+      FakeForSymbolAttribute.delete_all
+    end
+    
     it "should extend active record to allow symbol attributes to be saved as string" do
       obj = FakeForSymbolAttribute.new(:status => 'started')
       obj.save!

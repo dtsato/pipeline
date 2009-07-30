@@ -29,7 +29,7 @@ module Pipeline
     end
     
     def perform
-      raise InvalidStatusError.new(status) unless [:not_started, :paused].include?(status)
+      raise InvalidStatusError.new(status) unless ok_to_resume?
       begin
         _setup
         stages.each do |stage|
@@ -42,7 +42,6 @@ module Pipeline
         if e.input_required?
           self.status = :paused
         else
-          self.status = :failed
           raise e
         end
       rescue
@@ -50,6 +49,15 @@ module Pipeline
       end
     end
     
+    def cancel
+      raise InvalidStatusError.new(status) unless ok_to_resume?
+      self.status = :failed
+    end
+    
+    def ok_to_resume?
+      [:not_started, :paused].include?(status)
+    end
+
     private
     def _setup
       self.attempts += 1
