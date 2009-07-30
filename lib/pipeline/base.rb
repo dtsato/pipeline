@@ -29,6 +29,7 @@ module Pipeline
     end
     
     def execute
+      raise InvalidStatusError.new(status) unless [:not_started, :paused].include?(status)
       _setup
       stages.each do |stage|
         stage.execute unless stage.completed?

@@ -257,5 +257,42 @@ module Pipeline
         @failed_stage.attempts.should == 2
       end
     end
+    
+    describe "- execution (state transitions)" do
+      it "should execute if status is :not_started" do
+        pipeline = SamplePipeline.new
+        
+        lambda {pipeline.execute}.should_not raise_error(InvalidStatusError)
+      end
+
+      it "should execute if status is :paused (for retrying)" do
+        pipeline = SamplePipeline.new
+        pipeline.send(:status=, :paused)
+        
+        lambda {pipeline.execute}.should_not raise_error(InvalidStatusError)
+      end
+      
+      it "should not execute if status is :in_progress" do
+        pipeline = SamplePipeline.new
+        pipeline.send(:status=, :in_progress)
+        
+        lambda {pipeline.execute}.should raise_error(InvalidStatusError, "Status is already in progress")
+      end
+
+      it "should not execute if status is :completed" do
+        pipeline = SamplePipeline.new
+        pipeline.send(:status=, :completed)
+        
+        lambda {pipeline.execute}.should raise_error(InvalidStatusError, "Status is already completed")
+      end
+
+      it "should not execute if status is :failed" do
+        pipeline = SamplePipeline.new
+        pipeline.send(:status=, :failed)
+        
+        lambda {pipeline.execute}.should raise_error(InvalidStatusError, "Status is already failed")
+      end
+    end
+    
   end
 end

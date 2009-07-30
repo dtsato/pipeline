@@ -178,23 +178,22 @@ module Pipeline
 
         it "should execute if status is :failed (for retrying)" do
           stage = SampleStage.new
-          stage.stub!(:perform).and_raise(RecoverableError.new)
+          stage.send(:status=, :failed)
           
-          lambda {stage.execute}.should_not raise_error(InvalidStatusError)
           lambda {stage.execute}.should_not raise_error(InvalidStatusError)
         end
         
         it "should not execute if status is :in_progress" do
           stage = SampleStage.new
-          stage.send(:_setup)
+          stage.send(:status=, :in_progress)
           
           lambda {stage.execute}.should raise_error(InvalidStatusError, "Status is already in progress")
         end
 
         it "should not execute if status is :completed" do
           stage = SampleStage.new
+          stage.send(:status=, :completed)
 
-          lambda {stage.execute}.should_not raise_error(InvalidStatusError)
           lambda {stage.execute}.should raise_error(InvalidStatusError, "Status is already completed")
         end
       end
