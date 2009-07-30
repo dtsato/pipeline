@@ -1,0 +1,11 @@
+* Add examples of view display 
+* view helpers?
+* Improve documentation (RDoc)
+* Adapter for other persistence frameworks (ActiveModel?)
+* Adapter for other background processing mechanisms (currently relying on dj's auto-retry)
+
+Think more about:
+- Repeated code on status handling on pipeline instance/pipeline stage
+- Composite for nesting stages? (is that useful?)
+- Can I cancel a stage/pipeline that's in progress?
+- Pausing a stage?
