@@ -1,3 +1,4 @@
+* Allow delayed_job to be used as a plugin, as well as a gem
 * Add examples of view display 
 * view helpers?
 * Improve documentation (RDoc)

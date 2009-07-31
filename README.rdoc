@@ -14,11 +14,14 @@ Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable p
   * Recoverable errors that require user input pause the pipeline for further retry
 * Cancelling of a paused pipeline
 
+Known Issues:
+* Rails' tests/specs will only work if delayed_job is installed as a gem, rather than a plugin.
+
 == Installation
 
 Add the following lines to your config/environment.rb file:
 
-  config.gem "pipeline", :version => ">= 0.0.2"
+  config.gem "pipeline", :version => ">= 0.0.3"
 
 Run the following:
 

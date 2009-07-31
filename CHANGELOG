@@ -1,3 +1,12 @@
+0.0.3
+=====
+
+Bug Fix:
+* Autoloading delayed_job to avoid hardcoded dependency to collectiveidea's fork
+
+Known Issue:
+* Rails' tests/specs will only work if delayed_job is installed as a gem, rather than a plugin. Need to investigate further...
+
 0.0.2
 =====
 

@@ -1,6 +1,4 @@
-require 'rubygems'
-require 'activerecord'
-gem 'collectiveidea-delayed_job'
+autoload :ActiveRecord, 'activerecord'
 autoload :Delayed, 'delayed_job'
 
 $: << File.dirname(__FILE__)

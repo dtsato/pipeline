@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Danilo Sato"]
-  s.date = %q{2009-07-30}
+  s.date = %q{2009-07-31}
   s.description = %q{Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable pipeline.}
   s.email = %q{danilo@dtsato.com}
   s.extra_rdoc_files = [
@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
      "LICENSE",
      "README.rdoc",
      "Rakefile",
+     "TODO",
      "VERSION",
      "examples/auto_recoverable_pipeline.rb",
      "examples/cancelling_pipeline.rb",
