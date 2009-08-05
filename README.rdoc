@@ -21,7 +21,7 @@ Known Issues:
 
 Add the following lines to your config/environment.rb file:
 
-  config.gem "pipeline", :version => ">= 0.0.3"
+  config.gem "pipeline"
 
 Run the following:
 
