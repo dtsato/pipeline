@@ -15,7 +15,7 @@ begin
     gem.rdoc_options = ["--main", "README.rdoc", "--inline-source", "--line-numbers"]
     gem.extra_rdoc_files = ["README.rdoc"]
 
-    gem.test_files = Dir['spec/**/*']
+    gem.test_files = Dir['spec/**/*'] + Dir['spec/*']
     
     gem.add_dependency('activerecord', '>= 2.0')
     gem.add_dependency('collectiveidea-delayed_job', '>= 1.8.0')

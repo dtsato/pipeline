@@ -65,6 +65,11 @@ Gem::Specification.new do |s|
      "spec/pipeline/stage/base_spec.rb",
      "spec/rcov.opts",
      "spec/spec.opts",
+     "spec/spec_helper.rb",
+     "spec/database_integration_helper.rb",
+     "spec/pipeline",
+     "spec/rcov.opts",
+     "spec/spec.opts",
      "spec/spec_helper.rb"
   ]
 
