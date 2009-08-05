@@ -11,7 +11,7 @@ module Pipeline
       transactional_attr :status
       private :status=
 
-      belongs_to :pipeline, :class_name => "Pipeline::Base"
+      belongs_to :pipeline, :class_name => "Pipeline::Base", :foreign_key => 'pipeline_instance_id'
       
       @@chain = []
       def self.>>(next_stage)

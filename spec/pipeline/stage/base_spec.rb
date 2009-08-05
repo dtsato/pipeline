@@ -84,6 +84,14 @@ module Pipeline
           stage.should be_an_instance_of(SampleStage)
         end
         
+        it "should belong to pipeline instance" do
+          pipeline = Pipeline::Base.create
+          @stage.pipeline = pipeline
+          @stage.save!
+          
+          Base.find(@stage.id).pipeline.should == pipeline
+        end
+        
       end
 
       describe "- execution (success)" do
