@@ -1,5 +1,13 @@
+0.0.5
+=====
+
+Bug Fix:
+* Fixing association Stage -> PipelineInstance to use custom foreign_key
+
 0.0.4
 =====
+
+Features:
 * Allowing for custom name on stage
 
 0.0.3
