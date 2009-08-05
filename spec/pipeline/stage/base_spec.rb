@@ -37,6 +37,14 @@ module Pipeline
           Base.new.name.should == "Pipeline::Stage::Base"
           SampleStage.new.name.should == "SampleStage"
         end
+        
+        it "should allow overriding name at class level" do
+          SampleStage.default_name = "My custom stage name"
+          SampleStage.new.name.should == "My custom stage name"
+
+          SampleStage.default_name = :some_symbol
+          SampleStage.new.name.should == "some_symbol"
+        end
 
         it "should allow specifying a name on creation" do
           Base.new(:name => "My Name").name.should == "My Name"
