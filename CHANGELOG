@@ -1,3 +1,9 @@
+0.0.6
+=====
+
+Bug Fix:
+* Logging error details when a stage raises exception
+
 0.0.5
 =====
 
