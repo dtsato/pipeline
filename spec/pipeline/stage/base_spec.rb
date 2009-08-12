@@ -172,6 +172,17 @@ module Pipeline
           @stage.message.should == "message"
           @stage.reload.message.should == "message"
         end
+        
+        it "should log exception message and backtrace" do
+          SampleStage.default_name = "SampleStage"
+          error = StandardError.new("error message")
+          error.set_backtrace(['a', 'b', 'c'])
+          @stage.should_receive(:run).and_raise(error)
+
+          @stage.logger.should_receive(:info).with("Error on stage SampleStage: error message")
+          @stage.logger.should_receive(:info).with("a\nb\nc")
+          lambda {@stage.perform}.should raise_error
+        end
 
       end
       
