@@ -14,9 +14,17 @@ module Pipeline
 
     class_inheritable_accessor :defined_stages, :instance_writer => false
     self.defined_stages = []
+
+    class_inheritable_accessor :failure_mode, :instance_writer => false
+    self.failure_mode = :pause
     
     def self.define_stages(stages)
       self.defined_stages = stages.build_chain
+    end
+
+    def self.default_failure_mode=(mode)
+      new_mode = [:pause, :cancel].include?(mode) ? mode : :pause
+      self.failure_mode = new_mode
     end
 
     def after_initialize
@@ -45,7 +53,7 @@ module Pipeline
           raise e
         end
       rescue
-        self.status = :paused
+        self.status = (failure_mode == :cancel ? :failed : :paused)
       end
     end
     

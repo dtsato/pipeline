@@ -23,6 +23,17 @@ module Pipeline
       it "should allow accessing stages" do
         SamplePipeline.defined_stages.should == [FirstStage, SecondStage]
       end
+      
+      it "should allow configuring default failure mode (pause by default)" do
+        SamplePipeline.default_failure_mode = :pause
+        SamplePipeline.failure_mode.should == :pause
+        
+        SamplePipeline.default_failure_mode = :cancel
+        SamplePipeline.failure_mode.should == :cancel
+        
+        SamplePipeline.default_failure_mode = :something_else
+        SamplePipeline.failure_mode.should == :pause
+      end
     end
     
     describe "- setup" do
@@ -221,7 +232,7 @@ module Pipeline
       end
     end
 
-    describe "- execution (other errors will pause the pipeline)" do
+    describe "- execution (other errors will use failure mode to pause/cancel pipeline)" do
       before(:each) do
         failed_stage = SecondStage.new
         failed_stage.stub!(:run).and_raise(StandardError.new)
@@ -233,15 +244,30 @@ module Pipeline
         lambda {@pipeline.perform}.should_not raise_error(StandardError)
       end
       
-      it "should update status" do
+      it "should update status (pause mode)" do
+        SamplePipeline.default_failure_mode = :pause
         @pipeline.perform
         @pipeline.status.should == :paused
       end
       
-      it "should save status" do
+      it "should save status (pause mode)" do
+        SamplePipeline.default_failure_mode = :pause
         @pipeline.save!
         @pipeline.perform
         @pipeline.reload.status.should == :paused
+      end
+
+      it "should update status (cancel mode)" do
+        SamplePipeline.default_failure_mode = :cancel
+        @pipeline.perform
+        @pipeline.status.should == :failed
+      end
+      
+      it "should save status (cancel mode)" do
+        SamplePipeline.default_failure_mode = :cancel
+        @pipeline.save!
+        @pipeline.perform
+        @pipeline.reload.status.should == :failed
       end
     end
 
