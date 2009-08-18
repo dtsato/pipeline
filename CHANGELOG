@@ -7,6 +7,10 @@ Features:
     self.default_failure_mode = :cancel
   end
 
+Bug Fix:
+* Refreshes the pipeline and stage statuses before execution (at runtime) in case of offline status update
+* Rescue from ActiveRecord::RecordNotFound instead of relying on ActiveRecord#find(id) returning nil
+
 0.0.6
 =====
 

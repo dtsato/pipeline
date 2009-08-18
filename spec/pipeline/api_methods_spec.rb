@@ -50,8 +50,10 @@ module Pipeline
         Pipeline.resume('1')
       end
 
-      it "should raise error is trying to resume invalid pipeline" do
-        Pipeline::Base.should_receive(:find).and_return(nil)
+      it "should raise error if trying to resume invalid pipeline" do
+        Pipeline::Base.should_receive(:find).
+          with('1').
+          and_raise(ActiveRecord::RecordNotFound.new)
 
         lambda {Pipeline.resume('1')}.should raise_error(InvalidPipelineError, "Invalid pipeline")
       end
@@ -83,7 +85,9 @@ module Pipeline
       end
 
       it "should raise error is trying to cancel invalid pipeline" do
-        Pipeline::Base.should_receive(:find).and_return(nil)
+        Pipeline::Base.should_receive(:find).
+          with('1').
+          and_raise(ActiveRecord::RecordNotFound.new)
 
         lambda {Pipeline.cancel('1')}.should raise_error(InvalidPipelineError, "Invalid pipeline")
       end

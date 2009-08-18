@@ -37,6 +37,7 @@ module Pipeline
     end
     
     def perform
+      reload unless new_record?
       raise InvalidStatusError.new(status) unless ok_to_resume?
       begin
         _setup

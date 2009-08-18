@@ -77,7 +77,7 @@ begin
   Synthesis::Task.new("spec:synthesis") do |t|
     t.adapter = :rspec
     t.pattern = 'spec/**/*_spec.rb'
-    t.ignored = ['Pipeline::FakePipeline', 'Delayed::Job']
+    t.ignored = ['Pipeline::FakePipeline', 'Delayed::Job', 'SampleStage', 'Logger']
   end
 rescue LoadError
   desc 'Synthesis rake task not available'

@@ -37,6 +37,7 @@ module Pipeline
       end
       
       def perform
+        reload unless new_record?
         raise InvalidStatusError.new(status) unless [:not_started, :failed].include?(status)
         begin
           _setup

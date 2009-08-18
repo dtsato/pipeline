@@ -4,6 +4,7 @@
 * Improve documentation (RDoc)
 * Adapter for other persistence frameworks (ActiveModel?)
 * Adapter for other background processing mechanisms (currently relying on dj's auto-retry)
+* Max attempts on pipeline (or stage)
 
 Think more about:
 - Repeated code on status handling on pipeline instance/pipeline stage

@@ -12,6 +12,34 @@ end
 
 class SecondStage < FirstStage; end # Ugly.. just so I don't have to write stub again
 
+class IrrecoverableStage < FirstStage
+  def run
+    super
+    raise Pipeline::IrrecoverableError.new
+  end
+end
+
+class RecoverableInputRequiredStage < FirstStage
+  def run
+    super
+    raise Pipeline::RecoverableError.new("message", true)
+  end
+end
+
+class RecoverableStage < FirstStage
+  def run
+    super
+    raise Pipeline::RecoverableError.new("message")
+  end
+end
+
+class GenericErrorStage < FirstStage
+  def run
+    super
+    raise StandardError.new
+  end
+end
+
 class SamplePipeline < Pipeline::Base
   define_stages FirstStage >> SecondStage
 end
@@ -20,6 +48,12 @@ module Pipeline
   describe Base do
 
     describe "- configuring" do
+      before(:each) do
+        class ::SamplePipeline
+          define_stages FirstStage >> SecondStage
+        end
+      end
+      
       it "should allow accessing stages" do
         SamplePipeline.defined_stages.should == [FirstStage, SecondStage]
       end
@@ -70,6 +104,8 @@ module Pipeline
         
         retrieved_pipeline = Base.find(@pipeline.id.to_s)
         retrieved_pipeline.should === @pipeline
+        
+        lambda {Base.find('invalid_id')}.should raise_error(ActiveRecord::RecordNotFound)
       end
 
       it "should persist type as single table inheritance" do
@@ -115,21 +151,18 @@ module Pipeline
     
     describe "- execution (success)" do
       before(:each) do
-        @pipeline = SamplePipeline.new
+        class ::SamplePipeline
+          define_stages FirstStage >> SecondStage
+        end
+        @pipeline = ::SamplePipeline.new
       end
 
       it "should increment attempts" do
-        failed_stage = SecondStage.new
-        failed_stage.stub!(:run).and_raise(RecoverableError.new("message", true))
-        SecondStage.stub!(:new).and_return(failed_stage)
-        
         pipeline = SamplePipeline.new
         
+        pipeline.attempts.should == 0
         pipeline.perform
         pipeline.attempts.should == 1
-
-        pipeline.perform
-        pipeline.attempts.should == 2
       end
       
       it "should perform each stage" do
@@ -162,10 +195,10 @@ module Pipeline
     
     describe "- execution (irrecoverable error)" do
       before(:each) do
-        failed_stage = SecondStage.new
-        failed_stage.stub!(:run).and_raise(IrrecoverableError.new)
-        SecondStage.stub!(:new).and_return(failed_stage)
-        @pipeline = SamplePipeline.new
+        class ::SamplePipeline
+          define_stages FirstStage >> IrrecoverableStage
+        end
+        @pipeline = ::SamplePipeline.new
       end
 
       it "should not re-raise error" do
@@ -186,9 +219,9 @@ module Pipeline
     
     describe "- execution (recoverable error that doesn't require user input)" do
       before(:each) do
-        failed_stage = SecondStage.new
-        failed_stage.stub!(:run).and_raise(RecoverableError.new)
-        SecondStage.stub!(:new).and_return(failed_stage)
+        class ::SamplePipeline
+          define_stages FirstStage >> RecoverableStage
+        end
         @pipeline = SamplePipeline.new
       end
 
@@ -210,9 +243,9 @@ module Pipeline
 
     describe "- execution (recoverable error that requires user input)" do
       before(:each) do
-        failed_stage = SecondStage.new
-        failed_stage.stub!(:run).and_raise(RecoverableError.new('message', true))
-        SecondStage.stub!(:new).and_return(failed_stage)
+        class ::SamplePipeline
+          define_stages FirstStage >> RecoverableInputRequiredStage
+        end
         @pipeline = SamplePipeline.new
       end
 
@@ -234,9 +267,9 @@ module Pipeline
 
     describe "- execution (other errors will use failure mode to pause/cancel pipeline)" do
       before(:each) do
-        failed_stage = SecondStage.new
-        failed_stage.stub!(:run).and_raise(StandardError.new)
-        SecondStage.stub!(:new).and_return(failed_stage)
+        class ::SamplePipeline
+          define_stages FirstStage >> GenericErrorStage
+        end
         @pipeline = SamplePipeline.new
       end
 
@@ -273,12 +306,9 @@ module Pipeline
 
     describe "- execution (retrying)" do
       before(:each) do
-        @passing_stage = FirstStage.new
-        FirstStage.stub!(:new).and_return(@passing_stage)
-        
-        @failed_stage = SecondStage.new
-        @failed_stage.stub!(:run).and_raise(RecoverableError.new('message', true))
-        SecondStage.stub!(:new).and_return(@failed_stage)
+        class ::SamplePipeline
+          define_stages FirstStage >> RecoverableInputRequiredStage
+        end
         @pipeline = SamplePipeline.new
       end
 
@@ -299,12 +329,26 @@ module Pipeline
       
       it "should skip completed stages" do
         @pipeline.perform
-        @passing_stage.attempts.should == 1
-        @failed_stage.attempts.should == 1
+        @pipeline.stages[0].attempts.should == 1
+        @pipeline.stages[1].attempts.should == 1
         
         @pipeline.perform
-        @passing_stage.attempts.should == 1
-        @failed_stage.attempts.should == 2
+        @pipeline.stages[0].attempts.should == 1
+        @pipeline.stages[1].attempts.should == 2
+      end
+      
+      it "should refresh object (in case it was cancelled after job was scheduled)" do
+        # Gets paused on the first time
+        @pipeline.save!
+        @pipeline.perform
+        
+        # Status gets updated to failed on the database (not on the current instance)
+        same_pipeline = SamplePipeline.find(@pipeline.id)
+        same_pipeline.send(:status=, :failed)
+        same_pipeline.save!
+        
+        # Retrying should fail because pipeline is now failed
+        lambda {@pipeline.perform}.should raise_error(InvalidStatusError, "Status is already failed")
       end
     end
     
@@ -349,12 +393,9 @@ module Pipeline
     
     describe "- cancelling" do
       before(:each) do
-        @passing_stage = FirstStage.new
-        FirstStage.stub!(:new).and_return(@passing_stage)
-        
-        @failed_stage = SecondStage.new
-        @failed_stage.stub!(:run).and_raise(RecoverableError.new('message', true))
-        SecondStage.stub!(:new).and_return(@failed_stage)
+        class ::SamplePipeline
+          define_stages FirstStage >> RecoverableInputRequiredStage
+        end
         @pipeline = SamplePipeline.new
         @pipeline.perform
       end

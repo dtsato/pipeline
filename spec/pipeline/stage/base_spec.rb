@@ -76,6 +76,8 @@ module Pipeline
 
           s = SampleStage.find(@stage.id)
           s.should === @stage
+          
+          lambda {Base.find('invalid_id')}.should raise_error(ActiveRecord::RecordNotFound)          
         end
 
         it "should persist type as single table inheritance" do
@@ -113,12 +115,9 @@ module Pipeline
         end
         
         it "should increment attempts" do
-          @stage.stub!(:run).and_raise(StandardError.new)
-          lambda {@stage.perform}.should raise_error(StandardError)
+          @stage.attempts.should == 0
+          @stage.perform
           @stage.attempts.should == 1
-
-          lambda {@stage.perform}.should raise_error(StandardError)
-          @stage.attempts.should == 2
         end
         
         it "should call template method #run" do
@@ -126,6 +125,7 @@ module Pipeline
           @stage.perform
           @stage.should be_executed
         end
+                
       end
       
       describe "- execution (failure)" do
@@ -182,6 +182,21 @@ module Pipeline
           @stage.logger.should_receive(:info).with("Error on stage SampleStage: error message")
           @stage.logger.should_receive(:info).with("a\nb\nc")
           lambda {@stage.perform}.should raise_error
+        end
+
+        it "should refresh object (in case it was cancelled after job was scheduled)" do
+          # Gets failed on the first time
+          @stage.save!
+          @stage.should_receive(:run).and_raise(RecoverableError.new("message"))
+          lambda {@stage.perform}.should raise_error(RecoverableError)
+
+          # Status gets updated to completed on the database (not on the current instance)
+          same_stage = SampleStage.find(@stage.id)
+          same_stage.send(:status=, :completed)
+          same_stage.save!
+
+          # Retrying should fail because stage is now completed
+          lambda {@stage.perform}.should raise_error(InvalidStatusError, "Status is already completed")
         end
 
       end
