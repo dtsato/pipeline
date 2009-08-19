@@ -8,7 +8,7 @@ module Pipeline
     describe "#start" do
       before(:each) do
         @pipeline = FakePipeline.new
-        @pipeline.stub!(:save!)
+        @pipeline.stub!(:new_record?).and_return(false)
         Delayed::Job.stub!(:enqueue)
       end
       
@@ -17,8 +17,16 @@ module Pipeline
         lambda {Pipeline.start(Object.new)}.should raise_error(InvalidPipelineError, "Invalid pipeline")
       end
 
-      it "should save pipeline instance" do
+      it "should save pipeline instance (for new record)" do
+        @pipeline.should_receive(:new_record?).and_return(true)
         @pipeline.should_receive(:save!)
+        
+        Pipeline.start(@pipeline)
+      end
+
+      it "should not save pipeline instance (if already saved)" do
+        @pipeline.should_receive(:new_record?).and_return(false)
+        @pipeline.should_not_receive(:save!)
         
         Pipeline.start(@pipeline)
       end

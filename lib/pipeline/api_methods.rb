@@ -2,7 +2,7 @@ module Pipeline
   module ApiMethods
     def start(pipeline)
       raise InvalidPipelineError.new("Invalid pipeline") unless pipeline.is_a?(Pipeline::Base)
-      pipeline.save!
+      pipeline.save! if pipeline.new_record?
       Delayed::Job.enqueue(pipeline)
       pipeline.id
     end
