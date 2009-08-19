@@ -1,3 +1,9 @@
+0.0.8
+=====
+
+Bug Fix:
+* Clearing message when restarting a failed stage
+
 0.0.7
 =====
 

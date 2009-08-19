@@ -58,6 +58,7 @@ module Pipeline
       private
       def _setup
         self.attempts += 1
+        self.message = nil
         self.status = :in_progress
       end
     end

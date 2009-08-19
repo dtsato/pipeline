@@ -209,6 +209,14 @@ module Pipeline
           stage.status.should == :in_progress
           stage.reload.status.should == :in_progress
         end
+
+        it "should clear message when restarting" do
+          stage = SampleStage.new(:message => 'some message')
+          stage.send(:_setup)
+          
+          stage.message.should be_nil
+          stage.reload.message.should be_nil
+        end
       end
       
       describe "- execution (state transitions)" do
