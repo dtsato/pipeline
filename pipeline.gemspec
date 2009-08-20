@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{pipeline}
-  s.version = "0.0.7"
+  s.version = "0.0.8"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Danilo Sato"]
-  s.date = %q{2009-08-18}
+  s.date = %q{2009-08-20}
   s.description = %q{Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable pipeline.}
   s.email = %q{danilo@dtsato.com}
   s.extra_rdoc_files = [
@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
      "VERSION",
      "examples/auto_recoverable_pipeline.rb",
      "examples/cancelling_pipeline.rb",
+     "examples/helper.rb",
      "examples/two_step_pipeline.rb",
      "examples/user_recoverable_pipeline.rb",
      "generators/pipeline/pipeline_generator.rb",
