@@ -1,6 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'init')
-require File.join(File.dirname(__FILE__), '..', 'spec', 'database_integration_helper')
-ActiveRecord::Base.logger = Logger.new(STDOUT)
+require File.join(File.dirname(__FILE__), 'helper')
 
 class Step1 < Pipeline::Stage::Base
   def run
@@ -28,6 +26,8 @@ end
 
 id = Pipeline.start(TwoStepPipeline.new)
 
+Delayed::Job.work_off
+
 Pipeline.resume(id)
 
-Delayed::Worker.new.start
+Delayed::Job.work_off

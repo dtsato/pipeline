@@ -1,6 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'init')
-require File.join(File.dirname(__FILE__), '..', 'spec', 'database_integration_helper')
-ActiveRecord::Base.logger = Logger.new(STDOUT)
+require File.join(File.dirname(__FILE__), 'helper')
 
 class Step1 < Pipeline::Stage::Base
   def run
@@ -24,9 +22,7 @@ end
 
 id = Pipeline.start(TwoStepPipeline.new)
 
-Delayed::Worker.new.start
+Delayed::Job.work_off
 
-# CTRL-C to execute the cancelling, since we want to cancel after the stage failed, but
-# Worker is blocking the process on the previous line
 Pipeline.cancel(id)
-p Pipeline::Base.find(id)
+puts("Pipeline is now #{Pipeline::Base.find(id).status}")
