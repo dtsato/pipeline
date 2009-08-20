@@ -28,8 +28,10 @@ module Pipeline
       class_inheritable_accessor :default_name, :instance_writer => false
       
       def after_initialize
-        self.name ||= (default_name || self.class).to_s
-        self[:status] = :not_started if new_record?
+        if new_record?
+          self[:status] = :not_started
+          self.name ||= (default_name || self.class).to_s
+        end
       end
       
       def completed?

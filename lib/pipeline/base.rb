@@ -28,8 +28,8 @@ module Pipeline
     end
 
     def after_initialize
-      self[:status] = :not_started if new_record?
       if new_record?
+        self[:status] = :not_started
         self.class.defined_stages.each do |stage_class|
           stages << stage_class.new(:pipeline => self)
         end
