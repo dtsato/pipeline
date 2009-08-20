@@ -36,7 +36,7 @@ end
 class GenericErrorStage < FirstStage
   def run
     super
-    raise StandardError.new
+    raise Exception.new
   end
 end
 
@@ -274,7 +274,7 @@ module Pipeline
       end
 
       it "should not re-raise error" do
-        lambda {@pipeline.perform}.should_not raise_error(StandardError)
+        lambda {@pipeline.perform}.should_not raise_error(Exception)
       end
       
       it "should update status (pause mode)" do

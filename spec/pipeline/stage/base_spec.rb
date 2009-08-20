@@ -173,6 +173,13 @@ module Pipeline
           @stage.reload.message.should == "message"
         end
         
+        it "should capture generic Exception" do
+          @stage.should_receive(:run).and_raise(Exception.new)
+          lambda {@stage.perform}.should raise_error(Exception)
+          @stage.status.should == :failed
+          @stage.reload.status.should == :failed
+        end
+        
         it "should log exception message and backtrace" do
           SampleStage.default_name = "SampleStage"
           error = StandardError.new("error message")

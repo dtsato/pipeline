@@ -43,7 +43,7 @@ module Pipeline
           _setup
           run
           self.status = :completed
-        rescue => e
+        rescue Exception => e
           logger.info("Error on stage #{default_name}: #{e.message}")
           logger.info(e.backtrace.join("\n"))
           self.message = e.message

@@ -53,7 +53,7 @@ module Pipeline
         else
           raise e
         end
-      rescue
+      rescue Exception
         self.status = (failure_mode == :cancel ? :failed : :paused)
       end
     end

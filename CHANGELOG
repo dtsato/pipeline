@@ -4,6 +4,7 @@
 Bug Fix:
 * Clearing message when restarting a failed stage
 * Only saves the pipeline if it's a new record (client code is free to pass an already saved pipeline if needed)
+* Capturing generic Exception instead of StandardError (in case of Interrupts, Timeouts, ...)
 
 0.0.7
 =====
