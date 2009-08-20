@@ -229,15 +229,15 @@ module Pipeline
         lambda {@pipeline.perform}.should raise_error(RecoverableError)
       end
       
-      it "should keep status :in_progress" do
+      it "should change status to :retry" do
         lambda {@pipeline.perform}.should raise_error(RecoverableError)
-        @pipeline.status.should == :in_progress
+        @pipeline.status.should == :retry
       end
       
       it "should save status" do
         @pipeline.save!
         lambda {@pipeline.perform}.should raise_error(RecoverableError)
-        @pipeline.reload.status.should == :in_progress
+        @pipeline.reload.status.should == :retry
       end
     end
 
@@ -364,6 +364,13 @@ module Pipeline
 
       it "should execute if status is :paused (for retrying)" do
         @pipeline.send(:status=, :paused)
+        
+        @pipeline.should be_ok_to_resume
+        lambda {@pipeline.perform}.should_not raise_error(InvalidStatusError)
+      end
+
+      it "should execute if status is :retry" do
+        @pipeline.send(:status=, :retry)
         
         @pipeline.should be_ok_to_resume
         lambda {@pipeline.perform}.should_not raise_error(InvalidStatusError)

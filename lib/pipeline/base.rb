@@ -5,7 +5,7 @@ module Pipeline
     # :not_started ---> :in_progress ---> :completed
     #                       ^ |       \-> :failed
     #                       | v
-    #                     :paused
+    #                 :paused / :retry
     symbol_attr :status
     transactional_attr :status
     private :status=
@@ -51,6 +51,7 @@ module Pipeline
         if e.input_required?
           self.status = :paused
         else
+          self.status = :retry
           raise e
         end
       rescue Exception
@@ -64,7 +65,7 @@ module Pipeline
     end
     
     def ok_to_resume?
-      [:not_started, :paused].include?(status)
+      [:not_started, :paused, :retry].include?(status)
     end
 
     private

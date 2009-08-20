@@ -5,6 +5,7 @@ Bug Fix:
 * Clearing message when restarting a failed stage
 * Only saves the pipeline if it's a new record (client code is free to pass an already saved pipeline if needed)
 * Capturing generic Exception instead of StandardError (in case of Interrupts, Timeouts, ...)
+* Auto-recovering from errors was failing on InvalidStatusError. Added a new :retry status to differentiate between a paused or auto-recoverable error
 
 0.0.7
 =====
