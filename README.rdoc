@@ -14,21 +14,37 @@ Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable p
   * Recoverable errors that require user input pause the pipeline for further retry
 * Cancelling of a paused pipeline
 
-Known Issues:
-* Rails' tests/specs will only work if delayed_job is installed as a gem, rather than a plugin.
+== Installation and Use
 
-== Installation
++pipeline+ can be installed as either a RubyGem (recommended) or as a plugin.
 
-Add the following lines to your config/environment.rb file:
+=== Gem
+
+To install +pipeline+ as a RubyGem, add the following lines to your +config/environment.rb+ file:
 
   config.gem "pipeline"
+  config.gem "delayed_job"
 
-Run the following:
+And execute:
 
   rake gems:install
   rake gems:unpack # Optional, if you want to vendor the gem
+
+=== Plugin
+
+To install it as a plugin, run:
+
+  script/plugin install git://github.com/dtsato/pipeline.git
+
+=== Generating the required tables
+
+In order to persist your pipelines and stages, execute the following:
+
   script/generate pipeline # To generate the migration scripts that will store pipelines
+  script/generate delayed_job # To generate the migration scripts for delayed_job
   rake db:migrate
+
+=== Starting your workers
 
 You will also need to run your Delayed Job workers that will process the pipeline jobs in the background:
 
@@ -36,12 +52,12 @@ You will also need to run your Delayed Job workers that will process the pipelin
 
 == Dependencies
 
-* Rails
+* Rails (ActiveRecord)
 * Delayed job (http://github.com/collectiveidea/delayed_job/tree/master)
 
 == Usage
 
-Check <tt>examples</tt> for more examples (including error-recovery and cancelling)
+Check +examples+ for more examples (including error-recovery and cancelling)
 
   class Step1 < Pipeline::Stage::Base
     def perform

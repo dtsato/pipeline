@@ -18,10 +18,12 @@ begin
     gem.test_files = Dir['spec/**/*'] + Dir['spec/*']
     
     gem.add_dependency('activerecord', '>= 2.0')
-    gem.add_dependency('collectiveidea-delayed_job', '>= 1.8.0')
+    gem.add_dependency('delayed_job', '>= 1.8.0')
     
     gem.rubyforge_project = "pipeline"
   end
+  
+  Jeweler::GemcutterTasks.new
 
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"

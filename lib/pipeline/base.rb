@@ -12,9 +12,16 @@ module Pipeline
 
     has_many :stages, :class_name => 'Pipeline::Stage::Base', :foreign_key => 'pipeline_instance_id', :dependent => :destroy
 
+    ##  
+    # :singleton-method:
+    # Allow access for the +Stage+s defined for this +Pipeline+.
     class_inheritable_accessor :defined_stages, :instance_writer => false
     self.defined_stages = []
 
+    ##  
+    # :singleton-method:
+    # Determines the behaviour of this +Pipeline+ when a failure occurs:
+    # +:pause+ or +:cancel+ (+:pause+ by default)
     class_inheritable_accessor :failure_mode, :instance_writer => false
     self.failure_mode = :pause
     

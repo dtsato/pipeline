@@ -1,4 +1,4 @@
-autoload :ActiveRecord, 'activerecord'
+autoload :ActiveRecord, 'active_record'
 autoload :Delayed, 'delayed_job'
 
 $: << File.dirname(__FILE__)
