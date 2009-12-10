@@ -6,6 +6,8 @@ gem 'collectiveidea-delayed_job'
 require File.join(File.dirname(__FILE__), '..', 'init')
 require File.join(File.dirname(__FILE__), 'database_integration_helper')
 
+require File.join(File.dirname(__FILE__), 'models')
+
 ActiveRecord::Base.logger = Logger.new('pipeline.log')
 
 at_exit do

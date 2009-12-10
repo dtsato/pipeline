@@ -1,53 +1,9 @@
 require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
-class FirstStage < Pipeline::Stage::Base
-  def run
-    @executed = true
-  end
-  
-  def executed?
-    !!@executed
-  end
-end
-
-class SecondStage < FirstStage; end # Ugly.. just so I don't have to write stub again
-
-class IrrecoverableStage < FirstStage
-  def run
-    super
-    raise Pipeline::IrrecoverableError.new
-  end
-end
-
-class RecoverableInputRequiredStage < FirstStage
-  def run
-    super
-    raise Pipeline::RecoverableError.new("message", true)
-  end
-end
-
-class RecoverableStage < FirstStage
-  def run
-    super
-    raise Pipeline::RecoverableError.new("message")
-  end
-end
-
-class GenericErrorStage < FirstStage
-  def run
-    super
-    raise Exception.new
-  end
-end
-
-class SamplePipeline < Pipeline::Base
-  define_stages FirstStage >> SecondStage
-end
-
 module Pipeline
   describe Base do
 
-    describe "- configuring" do
+    context "- configuring" do
       before(:each) do
         class ::SamplePipeline
           define_stages FirstStage >> SecondStage
@@ -70,7 +26,7 @@ module Pipeline
       end
     end
     
-    describe "- setup" do
+    context "- setup" do
       before(:each) do
         @pipeline = SamplePipeline.new
       end
@@ -88,15 +44,15 @@ module Pipeline
       end
     end
 
-    describe "- persistence" do
+    context "- persistence" do
       before(:each) do
         @pipeline = Base.new
       end
       
       it "should persist pipeline instance" do
-        @pipeline.id.should be_nil
+        @pipeline.should be_new_record
         lambda {@pipeline.save!}.should_not raise_error
-        @pipeline.id.should_not be_nil
+        @pipeline.should_not be_new_record
       end
       
       it "should allow retrieval by id" do
@@ -149,20 +105,15 @@ module Pipeline
       end
     end
     
-    describe "- execution (success)" do
+    context "- execution (success)" do
       before(:each) do
-        class ::SamplePipeline
-          define_stages FirstStage >> SecondStage
-        end
-        @pipeline = ::SamplePipeline.new
+        @pipeline = SamplePipeline.new
       end
 
       it "should increment attempts" do
-        pipeline = SamplePipeline.new
-        
-        pipeline.attempts.should == 0
-        pipeline.perform
-        pipeline.attempts.should == 1
+        @pipeline.attempts.should == 0
+        @pipeline.perform
+        @pipeline.attempts.should == 1
       end
       
       it "should perform each stage" do
@@ -183,7 +134,7 @@ module Pipeline
       end
     end
     
-    describe "- execution (in progress)" do
+    context "- execution (in progress)" do
       it "should set status to in_progress" do
         pipeline = SamplePipeline.new
         pipeline.send(:_setup)
@@ -193,7 +144,7 @@ module Pipeline
       end
     end
     
-    describe "- execution (irrecoverable error)" do
+    context "- execution (irrecoverable error)" do
       before(:each) do
         class ::SamplePipeline
           define_stages FirstStage >> IrrecoverableStage
@@ -217,7 +168,7 @@ module Pipeline
       end
     end
     
-    describe "- execution (recoverable error that doesn't require user input)" do
+    context "- execution (recoverable error that doesn't require user input)" do
       before(:each) do
         class ::SamplePipeline
           define_stages FirstStage >> RecoverableStage
@@ -241,7 +192,7 @@ module Pipeline
       end
     end
 
-    describe "- execution (recoverable error that requires user input)" do
+    context "- execution (recoverable error that requires user input)" do
       before(:each) do
         class ::SamplePipeline
           define_stages FirstStage >> RecoverableInputRequiredStage
@@ -265,7 +216,7 @@ module Pipeline
       end
     end
 
-    describe "- execution (other errors will use failure mode to pause/cancel pipeline)" do
+    context "- execution (other errors will use failure mode to pause/cancel pipeline)" do
       before(:each) do
         class ::SamplePipeline
           define_stages FirstStage >> GenericErrorStage
@@ -304,7 +255,7 @@ module Pipeline
       end
     end
 
-    describe "- execution (retrying)" do
+    context "- execution (retrying)" do
       before(:each) do
         class ::SamplePipeline
           define_stages FirstStage >> RecoverableInputRequiredStage
@@ -344,15 +295,14 @@ module Pipeline
         
         # Status gets updated to failed on the database (not on the current instance)
         same_pipeline = SamplePipeline.find(@pipeline.id)
-        same_pipeline.send(:status=, :failed)
-        same_pipeline.save!
+        same_pipeline.update_attribute(:status, :failed)
         
         # Retrying should fail because pipeline is now failed
         lambda {@pipeline.perform}.should raise_error(InvalidStatusError, "Status is already failed")
       end
     end
     
-    describe "- execution (state transitions)" do
+    context "- execution (state transitions)" do
       before(:each) do
         @pipeline = Base.new
       end
@@ -363,42 +313,42 @@ module Pipeline
       end
 
       it "should execute if status is :paused (for retrying)" do
-        @pipeline.send(:status=, :paused)
+        @pipeline.update_attribute(:status, :paused)
         
         @pipeline.should be_ok_to_resume
         lambda {@pipeline.perform}.should_not raise_error(InvalidStatusError)
       end
 
       it "should execute if status is :retry" do
-        @pipeline.send(:status=, :retry)
+        @pipeline.update_attribute(:status, :retry)
         
         @pipeline.should be_ok_to_resume
         lambda {@pipeline.perform}.should_not raise_error(InvalidStatusError)
       end
       
       it "should not execute if status is :in_progress" do
-        @pipeline.send(:status=, :in_progress)
+        @pipeline.update_attribute(:status, :in_progress)
         
         @pipeline.should_not be_ok_to_resume
         lambda {@pipeline.perform}.should raise_error(InvalidStatusError, "Status is already in progress")
       end
 
       it "should not execute if status is :completed" do
-        @pipeline.send(:status=, :completed)
+        @pipeline.update_attribute(:status, :completed)
         
         @pipeline.should_not be_ok_to_resume
         lambda {@pipeline.perform}.should raise_error(InvalidStatusError, "Status is already completed")
       end
 
       it "should not execute if status is :failed" do
-        @pipeline.send(:status=, :failed)
+        @pipeline.update_attribute(:status, :failed)
         
         @pipeline.should_not be_ok_to_resume
         lambda {@pipeline.perform}.should raise_error(InvalidStatusError, "Status is already failed")
       end
     end
     
-    describe "- cancelling" do
+    context "- cancelling" do
       before(:each) do
         class ::SamplePipeline
           define_stages FirstStage >> RecoverableInputRequiredStage
@@ -419,7 +369,7 @@ module Pipeline
       end
     end
 
-    describe "- cancelling (state transitions)" do
+    context "- cancelling (state transitions)" do
       before(:each) do
         @pipeline = Base.new
       end
@@ -429,25 +379,25 @@ module Pipeline
       end
 
       it "should cancel if status is :paused (for retrying)" do
-        @pipeline.send(:status=, :paused)
+        @pipeline.update_attribute(:status, :paused)
         
         lambda {@pipeline.cancel}.should_not raise_error(InvalidStatusError)
       end
       
       it "should not cancel if status is :in_progress" do
-        @pipeline.send(:status=, :in_progress)
+        @pipeline.update_attribute(:status, :in_progress)
         
         lambda {@pipeline.cancel}.should raise_error(InvalidStatusError, "Status is already in progress")
       end
 
       it "should not cancel if status is :completed" do
-        @pipeline.send(:status=, :completed)
+        @pipeline.update_attribute(:status, :completed)
         
         lambda {@pipeline.cancel}.should raise_error(InvalidStatusError, "Status is already completed")
       end
 
       it "should not cancel if status is :failed" do
-        @pipeline.send(:status=, :failed)
+        @pipeline.update_attribute(:status, :failed)
         
         lambda {@pipeline.cancel}.should raise_error(InvalidStatusError, "Status is already failed")
       end

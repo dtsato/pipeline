@@ -4,6 +4,8 @@ class CreatePipelineInstancesAndStages < ActiveRecord::Migration
       t.string  :type                         # For single table inheritance
       t.string  :status                       # Current status of the pipeline
       t.integer :attempts, :default => 0      # Number of times this pipeline was executed
+      t.references :external                  # External object, to which this pipeline
+                                              # is associated (user-defined)
 
       t.timestamps
     end
@@ -17,6 +19,7 @@ class CreatePipelineInstancesAndStages < ActiveRecord::Migration
       t.integer    :attempts, :default => 0       # Number of times this stage was executed
 
       t.timestamps
+    end
   end
   
   def self.down

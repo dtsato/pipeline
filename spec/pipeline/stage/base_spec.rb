@@ -1,20 +1,10 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
-class SampleStage < Pipeline::Stage::Base
-  def run
-    @executed = true
-  end
-  
-  def executed?
-    !!@executed
-  end
-end
-
 module Pipeline
   module Stage
     describe Base do
 
-      describe "- chaining" do
+      context "- chaining" do
         class Step1 < Base; end
         class Step2 < Base; end
         class Step3 < Base; end
@@ -32,23 +22,25 @@ module Pipeline
         end
       end
       
-      describe "- setup" do
+      context "- setup" do
         it "should set default name" do
+          class ::SampleStage < Pipeline::Stage::Base
+          end
           Base.new.name.should == "Pipeline::Stage::Base"
-          SampleStage.new.name.should == "SampleStage"
+          ::SampleStage.new.name.should == "SampleStage"
         end
         
         it "should allow overriding name at class level" do
-          SampleStage.default_name = "My custom stage name"
-          SampleStage.new.name.should == "My custom stage name"
+          StubStage.default_name = "My custom stage name"
+          StubStage.new.name.should == "My custom stage name"
 
-          SampleStage.default_name = :some_symbol
-          SampleStage.new.name.should == "some_symbol"
+          StubStage.default_name = :some_symbol
+          StubStage.new.name.should == "some_symbol"
         end
 
         it "should allow specifying a name on creation" do
           Base.new(:name => "My Name").name.should == "My Name"
-          SampleStage.new(:name => "Customized Name").name.should == "Customized Name"
+          StubStage.new(:name => "Customized Name").name.should == "Customized Name"
         end
 
         it "should start with status not_started" do
@@ -60,21 +52,21 @@ module Pipeline
         end
       end
       
-      describe "- persistence" do
+      context "- persistence" do
         before(:each) do
-          @stage = SampleStage.new
+          @stage = StubStage.new
         end
         
         it "should persist stage" do
-          @stage.id.should be_nil
+          @stage.should be_new_record
           lambda {@stage.save!}.should_not raise_error
-          @stage.id.should_not be_nil
+          @stage.should_not be_new_record
         end
         
         it "should allow retrieval by id" do
           @stage.save!
 
-          s = SampleStage.find(@stage.id)
+          s = StubStage.find(@stage.id)
           s.should === @stage
           
           lambda {Base.find('invalid_id')}.should raise_error(ActiveRecord::RecordNotFound)          
@@ -83,7 +75,7 @@ module Pipeline
         it "should persist type as single table inheritance" do
           @stage.save!
           stage = Base.find(@stage.id)
-          stage.should be_an_instance_of(SampleStage)
+          stage.should be_an_instance_of(StubStage)
         end
         
         it "should belong to pipeline instance" do
@@ -96,9 +88,9 @@ module Pipeline
         
       end
 
-      describe "- execution (success)" do
+      context "- execution (success)" do
         before(:each) do
-          @stage = SampleStage.new
+          @stage = StubStage.new
         end
         
         it "should update status after finished" do
@@ -128,89 +120,90 @@ module Pipeline
                 
       end
       
-      describe "- execution (failure)" do
-        before(:each) do
-          @stage = SampleStage.new
-          @stage.stub!(:run).and_raise(StandardError.new)
-        end
-
+      context "- execution (failure)" do
         it "should re-raise error" do
-          lambda {@stage.perform}.should raise_error
+          stage = FailedStage.new
+          lambda {stage.perform}.should raise_error
         end
         
         it "should update status on irrecoverable error" do
-          @stage.should_receive(:run).and_raise(IrrecoverableError.new)
-          lambda {@stage.perform}.should raise_error(IrrecoverableError)
-          @stage.status.should == :failed
-          @stage.reload.status.should == :failed
+          stage = IrrecoverableStage.new
+          lambda {stage.perform}.should raise_error(IrrecoverableError)
+          stage.status.should == :failed
+          stage.reload.status.should == :failed
         end
 
         it "should update message on irrecoverable error" do
-          @stage.should_receive(:run).and_raise(IrrecoverableError.new("message"))
-          lambda {@stage.perform}.should raise_error(IrrecoverableError)
-          @stage.message.should == "message"
-          @stage.reload.message.should == "message"
+          stage = IrrecoverableStage.new
+          lambda {stage.perform}.should raise_error(IrrecoverableError)
+          stage.message.should == "message"
+          stage.reload.message.should == "message"
         end
 
         it "should update status on recoverable error (not requiring input)" do
-          @stage.should_receive(:run).and_raise(RecoverableError.new)
-          lambda {@stage.perform}.should raise_error(RecoverableError)
-          @stage.status.should == :failed
-          @stage.reload.status.should == :failed
+          stage = RecoverableStage.new
+          lambda {stage.perform}.should raise_error(RecoverableError)
+          stage.status.should == :failed
+          stage.reload.status.should == :failed
         end
 
         it "should update status on recoverable error (requiring input)" do
-          @stage.should_receive(:run).and_raise(RecoverableError.new("message", true))
-          lambda {@stage.perform}.should raise_error(RecoverableError)
-          @stage.status.should == :failed
-          @stage.reload.status.should == :failed
+          stage = RecoverableInputRequiredStage.new
+          lambda {stage.perform}.should raise_error(RecoverableError)
+          stage.status.should == :failed
+          stage.reload.status.should == :failed
         end
 
         it "should update message on recoverable error" do
-          @stage.should_receive(:run).and_raise(RecoverableError.new("message"))
-          lambda {@stage.perform}.should raise_error(RecoverableError)
-          @stage.message.should == "message"
-          @stage.reload.message.should == "message"
+          stage = RecoverableStage.new
+          lambda {stage.perform}.should raise_error(RecoverableError)
+          stage.message.should == "message"
+          stage.reload.message.should == "message"
         end
         
         it "should capture generic Exception" do
-          @stage.should_receive(:run).and_raise(Exception.new)
-          lambda {@stage.perform}.should raise_error(Exception)
-          @stage.status.should == :failed
-          @stage.reload.status.should == :failed
+          stage = GenericErrorStage.new
+          lambda {stage.perform}.should raise_error(Exception)
+          stage.status.should == :failed
+          stage.reload.status.should == :failed
         end
         
         it "should log exception message and backtrace" do
-          SampleStage.default_name = "SampleStage"
-          error = StandardError.new("error message")
-          error.set_backtrace(['a', 'b', 'c'])
-          @stage.should_receive(:run).and_raise(error)
+          class StageFailWithDetails < StubStage
+            self.default_name = "Fail With Details"
+            
+            def run
+              super
+              error = StandardError.new("error message")
+              error.set_backtrace(['a', 'b', 'c'])
+              raise error
+            end
+          end
+          stage = StageFailWithDetails.new
 
-          @stage.logger.should_receive(:info).with("Error on stage SampleStage: error message")
-          @stage.logger.should_receive(:info).with("a\nb\nc")
-          lambda {@stage.perform}.should raise_error
+          stage.logger.should_receive(:info).with("Error on stage Fail With Details: error message")
+          stage.logger.should_receive(:info).with("a\nb\nc")
+          lambda {stage.perform}.should raise_error
         end
 
         it "should refresh object (in case it was cancelled after job was scheduled)" do
           # Gets failed on the first time
-          @stage.save!
-          @stage.should_receive(:run).and_raise(RecoverableError.new("message"))
-          lambda {@stage.perform}.should raise_error(RecoverableError)
+          stage = RecoverableStage.create!
+          lambda {stage.perform}.should raise_error(RecoverableError)
 
           # Status gets updated to completed on the database (not on the current instance)
-          same_stage = SampleStage.find(@stage.id)
-          same_stage.send(:status=, :completed)
-          same_stage.save!
+          same_stage = StubStage.find(stage.id)
+          same_stage.update_attribute(:status, :completed)
 
           # Retrying should fail because stage is now completed
-          lambda {@stage.perform}.should raise_error(InvalidStatusError, "Status is already completed")
+          lambda {stage.perform}.should raise_error(InvalidStatusError, "Status is already completed")
         end
 
       end
       
-      describe "- execution (in progress)" do
+      context "- execution (in progress)" do
         it "should set status to in_progress" do
-          stage = SampleStage.new
+          stage = StubStage.new
           stage.send(:_setup)
           
           stage.status.should == :in_progress
@@ -218,7 +211,7 @@ module Pipeline
         end
 
         it "should clear message when restarting" do
-          stage = SampleStage.new(:message => 'some message')
+          stage = StubStage.new(:message => 'some message')
           stage.send(:_setup)
           
           stage.message.should be_nil
@@ -226,32 +219,31 @@ module Pipeline
         end
       end
       
-      describe "- execution (state transitions)" do
+      context "- execution (state transitions)" do
+        before(:each) do
+          @stage = StubStage.new
+        end
+
         it "should execute if status is :not_started" do
-          stage = SampleStage.new
-          
-          lambda {stage.perform}.should_not raise_error(InvalidStatusError)
+          lambda {@stage.perform}.should_not raise_error(InvalidStatusError)
         end
 
         it "should execute if status is :failed (for retrying)" do
-          stage = SampleStage.new
-          stage.send(:status=, :failed)
+          @stage.update_attribute(:status, :failed)
           
-          lambda {stage.perform}.should_not raise_error(InvalidStatusError)
+          lambda {@stage.perform}.should_not raise_error(InvalidStatusError)
         end
         
         it "should not execute if status is :in_progress" do
-          stage = SampleStage.new
-          stage.send(:status=, :in_progress)
+          @stage.update_attribute(:status, :in_progress)
           
-          lambda {stage.perform}.should raise_error(InvalidStatusError, "Status is already in progress")
+          lambda {@stage.perform}.should raise_error(InvalidStatusError, "Status is already in progress")
         end
 
         it "should not execute if status is :completed" do
-          stage = SampleStage.new
-          stage.send(:status=, :completed)
+          @stage.update_attribute(:status, :completed)
 
-          lambda {stage.perform}.should raise_error(InvalidStatusError, "Status is already completed")
+          lambda {@stage.perform}.should raise_error(InvalidStatusError, "Status is already completed")
         end
       end
 

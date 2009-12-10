@@ -22,6 +22,7 @@ ActiveRecord::Schema.define do
     t.string :type
     t.string :status
     t.integer :attempts, :default => 0
+    t.references :external
     t.timestamps
   end
 
