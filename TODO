@@ -1,7 +1,5 @@
 * Add examples of view display 
 * view helpers?
-* Improve documentation (RDoc)
-* External id
 * Chaining stages with string (to avoid having to load stages before pipeline)
 * Adapter for other persistence frameworks (ActiveModel?)
 * Adapter for other background processing mechanisms (currently relying on dj's auto-retry)

@@ -77,6 +77,27 @@ module Pipeline
   # [:failed]      If a stage fails with an unrecoverable error, or if the pipeline is
   #                cancelled, it goes into this stage.
   #
+  # == Referencing External Objects
+  #
+  # The execution of a pipeline will usually be associated to an external entity
+  # (e.g. a +User+ if the stages represent an internal user registration process, or a
+  # +Recipe+ in the examples of this page). To be able to reference the associated object
+  # from the stages, Pipeline::Base has an attribute <tt>external_id</tt> that can be
+  # used on a custom association to any external entity. Example:
+  #
+  #   class MakeDinnerPipeline < Pipeline::Base
+  #     define_stages PrepareIngredients >> Cook
+  #     belongs_to :recipe, :foreign_key => 'external_id'
+  #   end
+  #
+  # A Stage can reference this object as such:
+  #
+  #   class Cook < Pipeline::Stage::Base
+  #     def run
+  #       puts "Cooking a delicious #{pipeline.recipe.name}"
+  #     end
+  #   end
+  #
   # == Callbacks
   # 
   # You can define custom callbacks to be called before (+before_pipeline+) and after

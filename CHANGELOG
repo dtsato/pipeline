@@ -10,6 +10,7 @@ Features:
 * Can be installed as a plugin or gem
 * Improved Documentation
 * Callbacks before and after stage/pipeline execution
+* Association to an external entity through external_id (Please refer to documentation)
 
 0.0.8
 =====
