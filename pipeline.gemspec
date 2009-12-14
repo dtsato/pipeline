@@ -40,6 +40,7 @@ Gem::Specification.new do |s|
      "lib/pipeline/stage/base.rb",
      "pipeline.gemspec",
      "spec/database_integration_helper.rb",
+     "spec/models.rb",
      "spec/pipeline/api_methods_spec.rb",
      "spec/pipeline/base_spec.rb",
      "spec/pipeline/core_ext/symbol_attribute_spec.rb",
@@ -58,6 +59,7 @@ Gem::Specification.new do |s|
   s.summary = %q{A Rails plugin/gem to run asynchronous processes in a configurable pipeline}
   s.test_files = [
     "spec/database_integration_helper.rb",
+     "spec/models.rb",
      "spec/pipeline",
      "spec/pipeline/api_methods_spec.rb",
      "spec/pipeline/base_spec.rb",
@@ -71,6 +73,7 @@ Gem::Specification.new do |s|
      "spec/spec.opts",
      "spec/spec_helper.rb",
      "spec/database_integration_helper.rb",
+     "spec/models.rb",
      "spec/pipeline",
      "spec/rcov.opts",
      "spec/spec.opts",

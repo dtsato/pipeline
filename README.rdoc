@@ -4,6 +4,10 @@
 
 Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable pipeline.
 
+== Documentation
+
+http://rdoc.info/projects/dtsato/pipeline
+
 == Features
 
 * Execution of sequential user-defined stages in an asynchronous pipeline
@@ -12,7 +16,8 @@ Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable p
   * Irrecoverable errors fail the entire pipeline
   * Recoverable errors are automatically retried (using dj's exponential retry strategy)
   * Recoverable errors that require user input pause the pipeline for further retry
-* Cancelling of a paused pipeline
+* Cancelling/Resuming of a paused pipeline
+* Callbacks before and after executing stages and pipeline
 
 == Installation and Use
 
@@ -20,7 +25,8 @@ Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable p
 
 === Gem
 
-To install +pipeline+ as a RubyGem, add the following lines to your +config/environment.rb+ file:
+To install +pipeline+ as a RubyGem, add the following lines to your
+<tt>config/environment.rb</tt> file:
 
   config.gem "pipeline"
   config.gem "delayed_job"
@@ -53,7 +59,7 @@ You will also need to run your Delayed Job workers that will process the pipelin
 == Dependencies
 
 * Rails (ActiveRecord)
-* Delayed job (http://github.com/collectiveidea/delayed_job/tree/master)
+* Delayed job (http://github.com/collectiveidea/delayed_job)
 
 == Usage
 

@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require 'spec/spec_helper'
 
 module Pipeline
   describe Base do
@@ -367,6 +367,19 @@ module Pipeline
         @pipeline.cancel
         @pipeline.reload.status.should == :failed
       end
+      
+      it "should refresh object (in case it was updated after job was scheduled)" do
+        # Gets paused on the first time
+        @pipeline.save!
+        
+        # Status gets updated to failed on the database (not on the current instance)
+        same_pipeline = SamplePipeline.find(@pipeline.id)
+        same_pipeline.update_attribute(:status, :failed)
+        
+        # Retrying should fail because pipeline is now failed
+        lambda {@pipeline.cancel}.should raise_error(InvalidStatusError, "Status is already failed")
+      end
+      
     end
 
     context "- cancelling (state transitions)" do
@@ -402,6 +415,82 @@ module Pipeline
         lambda {@pipeline.cancel}.should raise_error(InvalidStatusError, "Status is already failed")
       end
     end
+
+    context "- resuming" do
+      before(:each) do
+        class ::SamplePipeline
+          define_stages FirstStage >> RecoverableInputRequiredStage
+        end
+        @pipeline = SamplePipeline.new
+        @pipeline.perform
+      end
+
+      it "should refresh object (in case it was updated after job was scheduled)" do
+        # Gets paused on the first time
+        @pipeline.save!
+        
+        # Status gets updated to failed on the database (not on the current instance)
+        same_pipeline = SamplePipeline.find(@pipeline.id)
+        same_pipeline.update_attribute(:status, :failed)
+        
+        # Retrying should fail because pipeline is now failed
+        lambda {@pipeline.resume}.should raise_error(InvalidStatusError, "Status is already failed")
+      end
+    end
     
+    context "- resuming (state transitions)" do
+      before(:each) do
+        @pipeline = Base.new
+      end
+      
+      it "should resume if status is :not_started" do
+        lambda {@pipeline.resume}.should_not raise_error(InvalidStatusError)
+      end
+
+      it "should resume if status is :paused (for retrying)" do
+        @pipeline.update_attribute(:status, :paused)
+        
+        lambda {@pipeline.resume}.should_not raise_error(InvalidStatusError)
+      end
+      
+      it "should not resume if status is :in_progress" do
+        @pipeline.update_attribute(:status, :in_progress)
+        
+        lambda {@pipeline.resume}.should raise_error(InvalidStatusError, "Status is already in progress")
+      end
+
+      it "should not resume if status is :completed" do
+        @pipeline.update_attribute(:status, :completed)
+        
+        lambda {@pipeline.resume}.should raise_error(InvalidStatusError, "Status is already completed")
+      end
+
+      it "should not resume if status is :failed" do
+        @pipeline.update_attribute(:status, :failed)
+        
+        lambda {@pipeline.resume}.should raise_error(InvalidStatusError, "Status is already failed")
+      end
+    end
+   
+    context "- callbacks" do
+      before(:each) do
+        @pipeline = ::SamplePipeline.new
+      end
+      
+      it "should allow callback before running the pipeline" do
+        @pipeline.should_receive(:before_pipeline_callback).once
+        @pipeline.perform
+      end
+      
+      it "should allow callback after running the pipeline" do
+        @pipeline.should_receive(:after_pipeline_callback).once
+        @pipeline.perform
+      end
+      
+      it "should run callback after cancelling a pipeline" do
+        @pipeline.should_receive(:after_pipeline_callback).once
+        @pipeline.cancel
+      end
+    end
   end
 end

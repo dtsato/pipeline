@@ -9,6 +9,7 @@ require 'pipeline/base'
 require 'pipeline/errors'
 require 'pipeline/stage/base'
 
+# Please refer to Pipeline::Base and Pipeline::Stage::Base for detailed documentation
 module Pipeline
   extend(ApiMethods)
 end

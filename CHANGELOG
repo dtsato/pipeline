@@ -1,10 +1,15 @@
 0.0.9
 =====
 
+Bug Fix:
+* Syntax error on generated migration
+
 Features:
 * Upgrading dependency to delayed_job
 * Move to gemcutter
 * Can be installed as a plugin or gem
+* Improved Documentation
+* Callbacks before and after stage/pipeline execution
 
 0.0.8
 =====

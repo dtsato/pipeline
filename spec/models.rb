@@ -49,4 +49,24 @@ end
 
 class SamplePipeline < Pipeline::Base
   define_stages FirstStage >> SecondStage
+  
+  before_pipeline :before_pipeline_callback
+  after_pipeline :after_pipeline_callback
+  
+  private
+  def before_pipeline_callback; end
+  def after_pipeline_callback; end
+end
+
+class SampleStage < Pipeline::Stage::Base
+  before_stage :before_stage_callback
+  after_stage :after_stage_callback
+  
+  def run
+    # nothing...
+  end
+  
+  private
+  def before_stage_callback; end
+  def after_stage_callback; end
 end

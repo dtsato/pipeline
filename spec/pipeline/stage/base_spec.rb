@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
+require 'spec/spec_helper'
 
 module Pipeline
   module Stage
@@ -24,8 +24,6 @@ module Pipeline
       
       context "- setup" do
         it "should set default name" do
-          class ::SampleStage < Pipeline::Stage::Base
-          end
           Base.new.name.should == "Pipeline::Stage::Base"
           ::SampleStage.new.name.should == "SampleStage"
         end
@@ -49,6 +47,10 @@ module Pipeline
         
         it "should validate status" do
           lambda {Base.new(:status => :something_else)}.should raise_error
+        end        
+
+        it "should raise error if subclass doesn't implement #run" do
+          lambda {Base.new.run}.should raise_error("This method must be implemented by any subclass of Pipeline::Stage::Base")
         end
       end
       
@@ -247,6 +249,27 @@ module Pipeline
         end
       end
 
+      context "- callbacks" do
+        before(:each) do
+          @stage = ::SampleStage.new
+        end
+
+        it "should allow callback before running the stage" do
+          @stage.should_receive(:before_stage_callback).once
+          @stage.perform
+        end
+
+        it "should allow callback after running the stage on success" do
+          @stage.should_receive(:after_stage_callback).once
+          @stage.perform
+        end
+
+        it "should allow callback after running the stage on failure" do
+          @stage.stub!(:run).and_raise("error")
+          @stage.should_receive(:after_stage_callback).once
+          lambda {@stage.perform}.should raise_error
+        end
+      end
     end
   end
 end

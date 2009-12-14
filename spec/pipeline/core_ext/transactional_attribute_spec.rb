@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require 'spec/spec_helper'
 
 # Reusing stage table to simplify database integration tests
 class FakeForTransactionalAttribute < ActiveRecord::Base

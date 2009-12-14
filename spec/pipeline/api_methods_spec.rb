@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require 'spec/spec_helper'
 
 module Pipeline
   describe ApiMethods do
@@ -48,6 +48,7 @@ module Pipeline
     describe "#resume" do
       before(:each) do
         @pipeline = Pipeline::Base.new
+        @pipeline.stub!(:resume)
         Pipeline::Base.stub!(:find).with('1').and_return(@pipeline)
         Delayed::Job.stub!(:enqueue)
       end
@@ -72,10 +73,10 @@ module Pipeline
         Pipeline.resume('1')
       end
       
-      it "should raise error is trying to resume in invalid state" do
-        @pipeline.send(:_setup)
+      it "should resume pipeline instance" do
+        @pipeline.should_receive(:resume)
 
-        lambda {Pipeline.resume('1')}.should raise_error(InvalidStatusError, "Status is already in progress")
+        Pipeline.resume('1')
       end
 
     end
