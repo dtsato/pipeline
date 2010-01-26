@@ -70,3 +70,32 @@ class SampleStage < Pipeline::Stage::Base
   def before_stage_callback; end
   def after_stage_callback; end
 end
+
+class SampleStageWithCallback < Pipeline::Stage::Base
+  attr_writer :before_stage_executed, :after_stage_executed
+  
+  before_stage do |stage|
+    puts "called"
+    stage.before_stage_executed += 1
+  end
+  
+  after_stage do |stage|
+    stage.after_stage_executed += 1
+  end
+  
+  def run
+    # nothing...
+  end
+  
+  def before_stage_executed
+    @before_stage_executed ||= 0
+  end
+  
+  def after_stage_executed
+    @after_stage_executed ||= 0
+  end  
+end
+
+class SamplePipelineWithCallbacks < Pipeline::Base
+  define_stages SampleStageWithCallback >> SampleStage
+end

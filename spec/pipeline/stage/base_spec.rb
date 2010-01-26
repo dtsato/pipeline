@@ -269,6 +269,13 @@ module Pipeline
           @stage.should_receive(:after_stage_callback).once
           lambda {@stage.perform}.should raise_error
         end
+        
+        it "should run callback once for each stage" do
+          pipeline = ::SamplePipelineWithCallbacks.new
+          pipeline.perform
+          pipeline.stages[0].before_stage_executed.should == 1
+          pipeline.stages[0].after_stage_executed.should == 1
+        end
       end
     end
   end
